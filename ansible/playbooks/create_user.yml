@@ -1,0 +1,24 @@
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: Add whoami user
+      user:
+        name: whoami
+        groups: sudo
+        append: true
+        state: present
+        shell: /bin/zsh
+        createhome: true
+
+    - name: Copy SSH key to whoami user
+      authorized_key:
+        user: whoami
+        state: present
+        key: "{{ lookup('file', '/Users/pawel_owczarczyk/.ssh/homelab/docker-prod.pub') }}"
+
+    - name: Make sudo without password for whoami user
+      copy:
+        dest: /etc/sudoers.d/80-ansible-sudo-user
+        content: "whoami ALL=(ALL) NOPASSWD:ALL"
+        mode: 0440
