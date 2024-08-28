@@ -10,10 +10,17 @@ variable "proxmox_api_user" {
 
 variable "proxmox_api_key" {
     type = string
-    default = "07b1e57e-81fe-4b15-8ffa-e3937bda4a6a"
+    default = "cc2bb255-82d0-42b9-aac4-08aa6c73aa72"
 }
 
 variable "proxmox_lxc_default_password" {
     type = string
     default = "KamiKadz%#90"
+}
+
+variable "root_ssh_key" {
+    type = string
+    default = <<-EOT
+    ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBF4SPJpSUNzTQWwhRCLZTCTFZ3j5K6qcdkMBEf/h/NJ pawel@owczarczyk.it
+  EOT
 }

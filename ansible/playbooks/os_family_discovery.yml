@@ -1,8 +1,0 @@
----
-- name: Discover OS Family of Hosts
-  hosts: all
-  gather_facts: true
-  tasks:
-    - name: Display OS Family
-      ansible.builtin.debug:
-        msg: "The OS family for {{ inventory_hostname }} is {{ ansible_os_family }}"

@@ -12,7 +12,8 @@ resource "proxmox_lxc" "docker-prod" {
     onboot = true
     ostype = "ubuntu"
     start = true
-    tags = "terraform;docker-prod"
+    tags = "terraform;docker-prod;internal"
+    ssh_public_keys = var.root_ssh_key
 
     rootfs {
         storage = "local-lvm"
@@ -22,7 +23,7 @@ resource "proxmox_lxc" "docker-prod" {
     mountpoint {
         key = "0"
         slot = 0
-        storage = "storage-ssd"
+        storage = "storage-ssd-fast"
         mp = "/mnt/nextcloud"
         size = "250G"
     }
@@ -32,6 +33,7 @@ resource "proxmox_lxc" "docker-prod" {
         bridge = "vmbr0"
         ip     = "10.0.0.3/24"
         gw = "10.0.0.1"
+        ip6 = "auto"
     }
 
     features {
