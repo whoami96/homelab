@@ -1,0 +1,31 @@
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: Add the fastfetch PPA
+      apt_repository:
+        repo: ppa:zhangsongcui3371/fastfetch
+        state: present
+
+    - name: Update apt cache
+      apt:
+        update_cache: true
+
+    - name: Install fastfetch package
+      apt:
+        name: fastfetch
+        state: present
+
+    - name: Clone fastfetch repository to ~/.fastfetch
+      git:
+        repo: https://github.com/fastfetch-cli/fastfetch.git
+        dest: "/home/whoami/.fastfetch"
+      become_user: whoami
+
+    - name: Add fastfetch command to .zshrc
+      lineinfile:
+        path: "/home/whoami/.zshrc"
+        line: 'fastfetch -c ~/.fastfetch/presets/examples/12.jsonc'
+        create: true
+        state: present
+      become_user: whoami
