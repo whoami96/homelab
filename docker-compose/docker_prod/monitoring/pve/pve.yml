@@ -1,5 +1,0 @@
-default:
-    user: prometheus@pam
-    token_name: prometheus@pam!prometheus_exporter
-    token_value: 814a813e-af2f-4803-a7e2-fdb92843f47c
-    verify_ssl: false

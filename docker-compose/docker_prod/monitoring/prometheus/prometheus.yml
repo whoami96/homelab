@@ -35,16 +35,16 @@ scrape_configs:
   scheme: http
   static_configs:
   - targets:
-    - localhost:9090
+    - 10.0.0.3:9090
     
 - job_name: speedtest-exporter
   scrape_interval: 10m
   scrape_timeout: 2m
   static_configs:
   - targets:
-    - localhost:9798
+    - 10.0.0.3:9798
 
 - job_name: "cadvisor-exporter"
   static_configs:
   - targets:
-    - localhost:9998
+    - 10.0.0.3:9998
