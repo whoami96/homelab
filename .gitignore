@@ -1,3 +1,5 @@
 .env
 vars.tf
 pve.yml
+terraform.tfstate.backup
+terraform.tfstate
