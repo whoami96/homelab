@@ -42,7 +42,7 @@ services:
     ports:
       - '9221:9221'
     volumes:
-      - ./pve/pve.yml:/etc/pve.yml
+      - ./pve/pve.yml:/etc/prometheus/pve.yml
     networks:
       - monitoring
 
