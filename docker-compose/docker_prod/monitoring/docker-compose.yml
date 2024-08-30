@@ -35,12 +35,25 @@ services:
     networks:
       - monitoring
 
+  pve_exporter:
+    image: prompve/prometheus-pve-exporter:3.4.4
+    container_name: pve_exporter
+    restart: unless-stopped
+    ports:
+      - '9221:9221'
+    volumes:
+      - ./pve/pve.yml:/etc/pve.yml
+    networks:
+      - monitoring
+
   speedtest_exporter:
     image: miguelndecarvalho/speedtest-exporter:v3.5.4
     container_name: speedtest_exporter
     restart: unless-stopped
     ports:
       - 9798:9798
+    networks:
+      - monitoring
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:v0.50.0
@@ -53,3 +66,13 @@ services:
       - /var/run:/var/run:rw
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - monitoring
+
+networks:
+  monitoring:
+    driver: bridge
+
+volumes:
+  prometheus_data:
+  grafana_data:
