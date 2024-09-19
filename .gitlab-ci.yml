@@ -1,0 +1,11 @@
+stages:
+  - linting
+
+lint-docker-compose:
+  stage: linting
+  image: docker:latest
+  script:
+    - docker run --rm -i -v ${CI_PROJECT_DIR}:/docker/ zavoloklom/dclint /monitoring/docker-compose.yml -f codeclimate -o gl-codequality.json
+  artifacts:
+    reports:
+      codequality: gl-codequality.json

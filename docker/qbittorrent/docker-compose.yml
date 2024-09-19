@@ -1,0 +1,25 @@
+---
+name: qbittorrent
+
+services:
+  qbittorrent-nox:
+    container_name: qbittorrent-nox
+    restart: unless-stopped
+    environment:
+      - QBT_EULA=accept
+      - QBT_VERSION=latest
+      - QBT_WEBUI_PORT=8090
+      - TZ=Europe/Warsaw
+    image: qbittorrentofficial/qbittorrent-nox:latest
+    ports:
+      - 6881:6881/tcp
+      - 6881:6881/udp
+      - 8090:8080/tcp
+    read_only: true
+    stop_grace_period: 30m
+    tmpfs:
+      - /tmp
+    tty: true
+    volumes:
+      - ./config:/config
+      - /srv/dev-disk-by-uuid-3f3a37df-d637-4f43-ac2e-829e82ede16f/nas_storage/Pobrane:/downloads

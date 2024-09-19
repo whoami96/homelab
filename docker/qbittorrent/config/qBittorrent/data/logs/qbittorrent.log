@@ -1,0 +1,28 @@
+(N) 2024-09-19T21:31:30 - qBittorrent v4.6.7 started
+(N) 2024-09-19T21:31:30 - Using config directory: /config/qBittorrent/config
+(N) 2024-09-19T21:34:10 - qBittorrent v4.6.7 started
+(N) 2024-09-19T21:34:10 - Using config directory: /config/qBittorrent/config
+(N) 2024-09-19T21:34:10 - Trying to listen on the following list of IP addresses: "0.0.0.0:6881,[::]:6881"
+(I) 2024-09-19T21:34:10 - Peer ID: "-qB4670-"
+(I) 2024-09-19T21:34:10 - HTTP User-Agent: "qBittorrent/4.6.7"
+(I) 2024-09-19T21:34:10 - Distributed Hash Table (DHT) support: ON
+(I) 2024-09-19T21:34:10 - Local Peer Discovery support: ON
+(I) 2024-09-19T21:34:10 - Peer Exchange (PeX) support: ON
+(I) 2024-09-19T21:34:10 - Anonymous mode: OFF
+(I) 2024-09-19T21:34:10 - Encryption support: ON
+(I) 2024-09-19T21:34:10 - Successfully listening on IP. IP: "127.0.0.1". Port: "TCP/6881"
+(I) 2024-09-19T21:34:10 - Successfully listening on IP. IP: "127.0.0.1". Port: "UDP/6881"
+(I) 2024-09-19T21:34:10 - Successfully listening on IP. IP: "172.22.0.2". Port: "TCP/6881"
+(I) 2024-09-19T21:34:10 - Successfully listening on IP. IP: "172.22.0.2". Port: "UDP/6881"
+(I) 2024-09-19T21:34:10 - Successfully listening on IP. IP: "::1". Port: "TCP/6881"
+(I) 2024-09-19T21:34:10 - Successfully listening on IP. IP: "::1". Port: "UDP/6881"
+(I) 2024-09-19T21:34:10 - UPnP/NAT-PMP support: ON
+(W) 2024-09-19T21:34:10 - Couldn't load IP geolocation database. Reason: No such file or directory
+(N) 2024-09-19T21:34:10 - Using built-in WebUI.
+(W) 2024-09-19T21:34:10 - Couldn't load WebUI translation for selected locale (C).
+(N) 2024-09-19T21:34:10 - WebUI: Now listening on IP: *, port: 8090
+(I) 2024-09-19T21:34:10 - Detected external IP. IP: "89.64.24.3"
+(I) 2024-09-19T21:34:11 - IP geolocation database loaded. Type: DBIP-Country-Lite. Build time: Sun Sep 1 00:47:20 2024.
+(I) 2024-09-19T21:34:11 - Successfully updated IP geolocation database.
+(N) 2024-09-19T21:35:30 - qBittorrent termination initiated
+(N) 2024-09-19T21:35:31 - qBittorrent is now ready to exit
