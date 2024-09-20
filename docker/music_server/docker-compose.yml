@@ -1,0 +1,16 @@
+name: music_server
+
+services:
+  gonic:
+    image: sentriz/gonic:v0.16.4
+    container_name: music_server
+    environment:
+      - TZ=Europe/Warsaw
+    ports:
+      - 4747:80
+    volumes:
+      - ./data:/data
+      - /srv/dev-disk-by-uuid-3f3a37df-d637-4f43-ac2e-829e82ede16f/nas_storage/Media/Muzyka:/music:ro
+      - /srv/dev-disk-by-uuid-3f3a37df-d637-4f43-ac2e-829e82ede16f/nas_storage/Media/Podcast:/podcasts
+      - /srv/dev-disk-by-uuid-3f3a37df-d637-4f43-ac2e-829e82ede16f/nas_storage/Media/Playlists:/playlists
+      - ./cache:/cache
