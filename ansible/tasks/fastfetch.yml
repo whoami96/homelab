@@ -1,0 +1,36 @@
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: Add the fastfetch PPA
+      apt_repository:
+        repo: ppa:zhangsongcui3371/fastfetch
+        state: present
+      when: ansible_os_family == "Debian" and ansible_distribution == "Ubuntu"
+
+    - name: Update apt cache
+      apt:
+        update_cache: true
+      when: ansible_os_family == "Debian" and ansible_distribution == "Ubuntu"
+
+    - name: Install fastfetch package
+      apt:
+        name: fastfetch
+        state: present
+      when: ansible_os_family == "Debian" and ansible_distribution == "Ubuntu"
+
+    - name: Clone fastfetch repository to ~/.fastfetch
+      git:
+        repo: https://github.com/fastfetch-cli/fastfetch.git
+        dest: "/home/whoami/.fastfetch"
+      become_user: whoami
+      when: ansible_os_family == "Debian" and ansible_distribution == "Ubuntu"
+
+    - name: Add fastfetch command to .zshrc
+      lineinfile:
+        path: "/home/whoami/.zshrc"
+        line: 'fastfetch -c ~/.fastfetch/presets/examples/12.jsonc'
+        create: true
+        state: present
+      become_user: whoami
+      when: ansible_os_family == "Debian" and ansible_distribution == "Ubuntu"

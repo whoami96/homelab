@@ -1,0 +1,37 @@
+---
+- hosts: all
+  become: true
+  roles:
+    - role: gantsign.oh-my-zsh
+      users:
+        - username: whoami
+          oh_my_zsh:
+            theme: fino-time
+            plugins:
+              - git
+              - git-prompt
+              - zsh-autosuggestions
+              - zsh-syntax-highlighting
+              - fast-syntax-highlighting
+              - fzf
+            update_mode: reminder
+            update_frequency: 3
+
+  tasks:
+    - name: Clone zsh-autosuggestions plugin
+      git:
+        repo: https://github.com/zsh-users/zsh-autosuggestions.git
+        dest: "/home/whoami/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
+      become_user: whoami
+
+    - name: Clone zsh-syntax-highlighting plugin
+      git:
+        repo: https://github.com/zsh-users/zsh-syntax-highlighting.git
+        dest: "/home/whoami/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
+      become_user: whoami
+
+    - name: Clone fast-syntax-highlighting plugin
+      git:
+        repo: https://github.com/zdharma-continuum/fast-syntax-highlighting.git
+        dest: "/home/whoami/.oh-my-zsh/custom/plugins/fast-syntax-highlighting"
+      become_user: whoami
