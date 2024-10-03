@@ -1,0 +1,22 @@
+name: proxy_manager
+
+services:
+  app:
+    image: 'jc21/nginx-proxy-manager:2.11.3'
+    container_name: proxy_manager
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    environment:
+      PUID: 1000
+      PGID: 1000
+      DISABLE_IPV6: 'true'
+    volumes:
+      - proxy_manager_data:/data
+      - proxy_manager_letsencrypt:/etc/letsencrypt
+
+volumes:
+  proxy_manager_data:
+  proxy_manager_letsencrypt:
