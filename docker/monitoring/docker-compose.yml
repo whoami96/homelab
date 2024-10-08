@@ -21,7 +21,7 @@ services:
       - monitoring
 
   grafana:
-    image: grafana:11.2.2
+    image: grafana/grafana:11.2.2
     container_name: grafana
     restart: unless-stopped
     ports:
