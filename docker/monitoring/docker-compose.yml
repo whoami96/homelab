@@ -1,0 +1,78 @@
+---
+name: monitoring
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - 9090:9090
+    volumes:
+      - prometheus_data:/prometheus
+      - ./prometheus/:/etc/prometheus/
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:11.2.2
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana_dashboard:/etc/grafana/provisioning/datasources
+    networks:
+      - monitoring
+
+  pve_exporter:
+    image: prompve/prometheus-pve-exporter:3.4.5
+    container_name: pve_exporter
+    restart: unless-stopped
+    ports:
+      - '9221:9221'
+    volumes:
+      - ./pve/pve.yml:/etc/prometheus/pve.yml
+    networks:
+      - monitoring
+
+  speedtest_exporter:
+    image: miguelndecarvalho/speedtest-exporter:v3.5.4
+    container_name: speedtest_exporter
+    restart: unless-stopped
+    ports:
+      - 9798:9798
+    networks:
+      - monitoring
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.50.0
+    container_name: cadvisor_exporter
+    restart: unless-stopped
+    ports:
+      - "9998:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - monitoring
+
+networks:
+  monitoring:
+    driver: bridge
+
+volumes:
+  prometheus_data:
+  grafana_data:

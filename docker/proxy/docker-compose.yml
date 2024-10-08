@@ -1,0 +1,50 @@
+name: proxy_manager
+services:
+  proxy:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: proxy_manager
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+      - '81:81'
+    networks:
+      - proxy
+    environment:
+      DB_MYSQL_HOST: ${DB_MYSQL_HOST}
+      DB_MYSQL_PORT: ${DB_MYSQL_PORT}
+      DB_MYSQL_USER: ${DB_MYSQL_USER}
+      DB_MYSQL_PASSWORD: ${DB_MYSQL_PASSWORD}
+      DB_MYSQL_NAME: ${DB_MYSQL_NAME}
+      DISABLE_IPV6: 'true'
+    volumes:
+      - proxy_manager_data:/data
+      - proxy_manager_letsencrypt:/etc/letsencrypt
+    depends_on:
+      - proxy-db
+
+  proxy-db:
+    image: 'jc21/mariadb-aria:latest'
+    container_name: proxy_manager_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_MYSQL_NAME}
+      MYSQL_USER: ${DB_MYSQL_USER}
+      MYSQL_PASSWORD: ${DB_MYSQL_PASSWORD}
+      MARIADB_AUTO_UPGRADE: '1'
+    ports:
+      - '3301:3306'
+    networks:
+      - proxy
+    volumes:
+      - proxy_db_data:/var/lib/mysql
+
+volumes:
+  proxy_manager_data:
+  proxy_manager_letsencrypt:
+  proxy_db_data:
+
+networks:
+  proxy:
+    driver: bridge
