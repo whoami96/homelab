@@ -35,21 +35,14 @@ services:
     networks:
       - monitoring
 
-  node-exporter:
-    image: prom/node-exporter:v1.8.2
-    container_name: node-exporter
+  pve_exporter:
+    image: prompve/prometheus-pve-exporter:3.4.5
+    container_name: pve_exporter
     restart: unless-stopped
     ports:
-      - 9100:9100
+      - '9221:9221'
     volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-    command:
-      - '--path.procfs=/host/proc'
-      - '--path.rootfs=/rootfs'
-      - '--path.sysfs=/host/sys'
-      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+      - ./pve/pve.yml:/etc/prometheus/pve.yml
     networks:
       - monitoring
 

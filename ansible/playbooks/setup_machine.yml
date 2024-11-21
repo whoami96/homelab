@@ -1,0 +1,63 @@
+---
+- name: Setup machine
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: Display OS Family
+      ansible.builtin.debug:
+        msg: "The OS family for {{ inventory_hostname }} is {{ ansible_os_family }}"
+
+    - name: "Updating and Upgrading Apt Packages"
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+        upgrade: safe
+      when: ansible_os_family == "Debian"
+    
+    - name: Install packages for Debian/Ubuntu
+      ansible.builtin.apt:
+        name:
+          - build-essential
+          - git
+          - vim
+          - curl
+          - wget
+          - htop
+          - tar
+          - net-tools
+          - unzip
+          - zsh
+          - fzf
+          - apt-transport-https
+          - ca-certificates
+          - gnupg
+          - lsb-release
+        state: present
+      when: ansible_os_family == "Debian"
+    
+    - name: Add whoami user
+      ansible.builtin.user:
+        name: whoami
+        groups:
+          - sudo
+        append: true
+        state: present
+        shell: /bin/zsh
+        create_home: yes
+    
+    - name: Copy SSH key to whoami user
+      ansible.builtin.authorized_key:
+        user: whoami
+        state: present
+        key: "{{ lookup('file', '~/.ssh/homelab/whoami.pub') }}"
+    
+    - name: Make sudo without password for whoami user
+      ansible.builtin.copy:
+        dest: /etc/sudoers.d/80-ansible-sudo-user
+        content: "whoami ALL=(ALL) NOPASSWD:ALL"
+        mode: '0440'
+
+# Import additional playbooks
+- import_playbook: ../tasks/docker-install.yml
+- import_playbook: ../tasks/oh-my-zsh.yml
+- import_playbook: ../tasks/fastfetch.yml
