@@ -1,7 +1,9 @@
 .env
-vars.tf
+vars.tfvars
 pve.yml
 terraform.tfstate.backup
 terraform.tfstate
 .terraform
 .terraform.lock.hcl
+backend.tf
+.vscode
