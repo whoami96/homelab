@@ -7,10 +7,10 @@ services:
     container_name: prometheus
     restart: unless-stopped
     ports:
-      - 9090:9090
+      - '9090:9090'
     volumes:
       - prometheus_data:/prometheus
-      - ./prometheus/:/etc/prometheus/
+      - /home/whoami/config/prometheus:/etc/prometheus/
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
@@ -25,13 +25,13 @@ services:
     container_name: grafana
     restart: unless-stopped
     ports:
-      - 3000:3000
+      - '3000:3000'
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./grafana_dashboard:/etc/grafana/provisioning/datasources
+      - /home/whoami/config/grafana_dashboard:/etc/grafana/provisioning/datasources
     networks:
       - monitoring
 
@@ -42,7 +42,7 @@ services:
     ports:
       - '9221:9221'
     volumes:
-      - ./pve/pve.yml:/etc/prometheus/pve.yml
+      - /home/whoami/config/pve/pve.yml:/etc/prometheus/pve.yml
     networks:
       - monitoring
 
@@ -51,7 +51,7 @@ services:
     container_name: speedtest_exporter
     restart: unless-stopped
     ports:
-      - 9798:9798
+      - '9798:9798'
     networks:
       - monitoring
 
@@ -60,7 +60,7 @@ services:
     container_name: cadvisor_exporter
     restart: unless-stopped
     ports:
-      - "9998:8080"
+      - '9998:8080'
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:rw
