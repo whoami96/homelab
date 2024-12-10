@@ -5,12 +5,12 @@ all:
         docker:
           ansible_host: 10.0.0.4
           ansible_user: root
-          ansible_ssh_private_key_file: ~/.ssh/homelab/root_pve
+          ansible_ssh_private_key_file: ~/.ssh/homelab/root
           ansible_port: 22
     Linux_host:
       hosts:
         storage:
           ansible_host: 10.0.0.3
           ansible_user: root
-          ansible_ssh_private_key_file: ~/.ssh/homelab/root_pve
+          ansible_ssh_private_key_file: ~/.ssh/homelab/root
           ansible_port: 22
