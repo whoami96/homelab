@@ -3,14 +3,19 @@ all:
     Docker:
       hosts:
         docker:
-          ansible_host: 10.0.0.4
+          ansible_host: 192.168.0.11
           ansible_user: root
           ansible_ssh_private_key_file: ~/.ssh/homelab/root
           ansible_port: 22
     Linux_host:
       hosts:
-        storage:
-          ansible_host: 10.0.0.3
+        nextcloud:
+          ansible_host: 192.168.0.12
+          ansible_user: root
+          ansible_ssh_private_key_file: ~/.ssh/homelab/root
+          ansible_port: 22
+        gitea:
+          ansible_host: 192.168.0.13
           ansible_user: root
           ansible_ssh_private_key_file: ~/.ssh/homelab/root
           ansible_port: 22
