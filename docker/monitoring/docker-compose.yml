@@ -69,6 +69,7 @@ services:
     networks:
       - monitoring
   nextcloud-exporter:
+    container_name: nextcloud-exporter
     image: xperimental/nextcloud-exporter:0.7.0
     environment:
       - NEXTCLOUD_SERVERINFO_URL=${NEXTCLOUD_SERVERINFO_URL}
