@@ -72,7 +72,7 @@ services:
     container_name: nextcloud-exporter
     image: xperimental/nextcloud-exporter:0.7.0
     environment:
-      - NEXTCLOUD_SERVERINFO_URL=${NEXTCLOUD_SERVERINFO_URL}
+      - NEXTCLOUD_SERVER=${NEXTCLOUD_SERVER}
       - NEXTCLOUD_USERNAME=${NEXTCLOUD_USERNAME}
       - NEXTCLOUD_PASSWORD=${NEXTCLOUD_PASSWORD}
       - NEXTCLOUD_AUTH_TOKEN=${NEXTCLOUD_AUTH_TOKEN}
