@@ -69,7 +69,7 @@ services:
     networks:
       - monitoring
   nextcloud-exporter:
-    image: nextcloud-exporter:0.7.0
+    image: xperimental/nextcloud-exporter:0.7.0
     environment:
       - NEXTCLOUD_SERVERINFO_URL=${NEXTCLOUD_SERVERINFO_URL}
       - NEXTCLOUD_USERNAME=${NEXTCLOUD_USERNAME}
