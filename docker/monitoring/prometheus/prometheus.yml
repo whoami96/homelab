@@ -48,3 +48,8 @@ scrape_configs:
   static_configs:
   - targets:
     - 10.0.0.4:9998
+
+- job_name: 'nextcloud'
+  scrape_interval: 90s
+  static_configs:
+    - targets: ['localhost:9205']
