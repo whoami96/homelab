@@ -68,17 +68,6 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
     networks:
       - monitoring
-  nextcloud-exporter:
-    container_name: nextcloud-exporter
-    image: xperimental/nextcloud-exporter:0.7.0
-    environment:
-      - NEXTCLOUD_SERVER=${NEXTCLOUD_SERVER}
-      - NEXTCLOUD_AUTH_TOKEN=${NEXTCLOUD_AUTH_TOKEN}
-      - NEXTCLOUD_LISTEN_ADDRESS=${NEXTCLOUD_LISTEN_ADDRESS}
-      - NEXTCLOUD_TLS_SKIP_VERIFY=true
-      - NEXTCLOUD_INFO_UPDATE=true
-    ports:
-      - "9205:9205"
 
 networks:
   monitoring:
