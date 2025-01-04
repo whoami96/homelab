@@ -47,11 +47,11 @@ services:
       - monitoring
 
   speedtest_exporter:
-    image: danopstech/speedtest_exporter:v0.0.5
+    image: speedtest-exporter:v3.5.4
     container_name: speedtest_exporter
     restart: unless-stopped
     ports:
-      - '9798:9090'
+      - '9798:9798'
     networks:
       - monitoring
 
