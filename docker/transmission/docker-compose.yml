@@ -1,0 +1,19 @@
+name: transmission
+
+services:
+  transmission:
+    image: linuxserver/transmission:4.0.6
+    container_name: transmission
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Warsaw
+    volumes:
+      - /home/whoami/docker_volumes/transmission/config:/config
+      - /mnt/download:/downloads
+      - /home/whoami/docker_volumes/transmission/watch:/watch
+    ports:
+      - 9091:9091
+      - 51413:51413
+      - 51413:51413/udp
+    restart: unless-stopped
