@@ -1,3 +1,0 @@
-FROM deluan/navidrome:0.52.5
-
-RUN apk add --no-cache mpv

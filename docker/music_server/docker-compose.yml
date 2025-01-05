@@ -1,16 +1,21 @@
-name: music_server
+---
+name: music-server
 
 services:
-  gonic:
-    image: sentriz/gonic:v0.16.4
-    container_name: music_server
-    environment:
-      - TZ=Europe/Warsaw
+  navidrome:
+    image: deluan/navidrome:0.54.3
+    container_name: navidrome
+    user: 1000:1000
     ports:
-      - 4747:80
+      - "4533:4533"
+    restart: unless-stopped
+    environment:
+      ND_SCANSCHEDULE: 1h
+      ND_LOGLEVEL: info
+      ND_SESSIONTIMEOUT: 24h
+      ND_BASEURL: "192.168.0.12"
+      ND_PORT: 4533
+      ND_REVERSEPROXYWHITELIST: "0.0.0.0/0"
     volumes:
-      - ./data:/data
-      - /srv/dev-disk-by-uuid-3f3a37df-d637-4f43-ac2e-829e82ede16f/nas_storage/Media/Muzyka:/music:ro
-      - /srv/dev-disk-by-uuid-3f3a37df-d637-4f43-ac2e-829e82ede16f/nas_storage/Media/Podcast:/podcasts
-      - /srv/dev-disk-by-uuid-3f3a37df-d637-4f43-ac2e-829e82ede16f/nas_storage/Media/Playlists:/playlists
-      - ./cache:/cache
+      - "/home/whoami/docker_volumes/NaviData:/data"
+      - "/mnt/media/Muzyka:/music:ro"
