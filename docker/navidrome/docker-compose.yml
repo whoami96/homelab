@@ -13,7 +13,6 @@ services:
       ND_SCANSCHEDULE: 1h
       ND_LOGLEVEL: info
       ND_SESSIONTIMEOUT: 24h
-      ND_BASEURL: "192.168.0.12:4533"
       ND_PORT: 4533
       ND_REVERSEPROXYWHITELIST: "0.0.0.0/0"
     volumes:
