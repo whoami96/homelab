@@ -5,6 +5,7 @@ services:
   nextcloud:
     image: nextcloud:30.0.4-apache
     restart: unless-stopped
+    container_name: nextcloud
     ports:
       - '80:80'
     volumes:
@@ -21,6 +22,7 @@ services:
   nextcloud-redis:
     image: redis:8.0-M02-bookworm
     restart: unless-stopped
+    container_name: nextcloud-redis
     networks:
       - nextcloud
     ports:
@@ -28,8 +30,9 @@ services:
 
   nextcloud-mariadb:
     image: mariadb:11.6.2-noble
-    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
     restart: unless-stopped
+    container_name: nextcloud-mariadb
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
     volumes:
       - nextcloud-mariadb_data:/var/lib/mysql
     networks:
