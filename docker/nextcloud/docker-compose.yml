@@ -1,0 +1,50 @@
+---
+name: nextcloud
+
+services:
+  nextcloud:
+    image: nextcloud:30.0.4-apache
+    restart: unless-stopped
+    ports:
+      - '80:80'
+    volumes:
+      - /mnt/nextcloud:/var/www/html
+    networks:
+      - nextcloud
+    environment:
+      - REDIS_HOST=nextcloud-redis
+      - MYSQL_HOST=nextcloud-mariadb
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+
+  nextcloud-redis:
+    image: redis:8.0-M02-bookworm
+    restart: unless-stopped
+    networks:
+      - nextcloud
+    ports:
+      - '6379:6379'
+
+  nextcloud-mariadb:
+    image: mariadb:11.6.2-noble
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    restart: unless-stopped
+    volumes:
+      - nextcloud-mariadb_data:/var/lib/mysql
+    networks:
+      - nextcloud
+    environment:
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    ports:
+      - '3306:3306'
+
+volumes:
+  nextcloud-mariadb_data:
+
+networks:
+  nextcloud:
+    driver: bridge
