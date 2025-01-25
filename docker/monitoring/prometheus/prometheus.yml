@@ -53,4 +53,4 @@ scrape_configs:
   scrape_interval: 90s
   static_configs:
     - targets: 
-      - 192.168.0.12:9205
+      - 192.168.0.11:9205

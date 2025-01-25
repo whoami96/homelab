@@ -10,7 +10,7 @@ services:
       - '9090:9090'
     volumes:
       - prometheus_data:/prometheus
-      - /home/whoami/config/prometheus:/etc/prometheus/
+      - /home/whoami/docker/config/prometheus:/etc/prometheus/
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
@@ -31,7 +31,7 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
     volumes:
       - grafana_data:/var/lib/grafana
-      - /home/whoami/config/grafana_dashboard:/etc/grafana/provisioning/datasources
+      - /home/whoami/docker/config/grafana_dashboard:/etc/grafana/provisioning/datasources
     networks:
       - monitoring
 
@@ -42,7 +42,7 @@ services:
     ports:
       - '9221:9221'
     volumes:
-      - /home/whoami/config/pve/pve.yml:/etc/prometheus/pve.yml
+      - /home/whoami/docker/config/pve/pve.yml:/etc/prometheus/pve.yml
     networks:
       - monitoring
 

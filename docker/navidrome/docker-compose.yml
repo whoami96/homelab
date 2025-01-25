@@ -16,5 +16,5 @@ services:
       ND_PORT: 4533
       ND_REVERSEPROXYWHITELIST: "0.0.0.0/0"
     volumes:
-      - "/home/whoami/docker_volumes/NaviData:/data"
+      - "/home/whoami/docker/docker_volumes/NaviData:/data"
       - "/mnt/media/Muzyka:/music:ro"
