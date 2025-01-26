@@ -24,7 +24,7 @@ services:
     image: grafana/grafana:11.4.0
     container_name: grafana
     restart: unless-stopped
-    ports:
+    ports:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
       - '3000:3000'
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
