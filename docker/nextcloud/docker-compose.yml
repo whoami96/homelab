@@ -7,7 +7,7 @@ services:
     restart: unless-stopped
     container_name: nextcloud
     ports:
-      - '80:80'
+      - '8080:80'
     volumes:
       - /mnt/nextcloud:/var/www/html
     networks:
