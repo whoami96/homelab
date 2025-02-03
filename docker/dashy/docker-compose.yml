@@ -1,0 +1,11 @@
+---
+name: dashy
+services:
+  homelab-dashboard:
+    image: lissy93/dashy:release-3.1.1
+    container_name: homelab-dashboard
+    restart: always
+    ports:
+      - "4000:8081"
+    volumes:
+      - "/home/whoami/docker/config/homelab-dashboard/homelab-dashboard.yml:/app/user-data/conf.yml"
