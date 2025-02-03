@@ -21,6 +21,8 @@ services:
     volumes:
       - proxy_manager_data:/data
       - proxy_manager_letsencrypt:/etc/letsencrypt
+    networks:
+      - nginx-proxy-manager
     depends_on:
       - npm-db
 
@@ -38,8 +40,14 @@ services:
       MARIADB_AUTO_UPGRADE: '1'
     volumes:
       - proxy_mysql_data:/var/lib/mysql
+    networks:
+      - nginx-proxy-manager
 
 volumes:
   proxy_manager_data:
   proxy_manager_letsencrypt:
   proxy_mysql_data:
+
+networks:
+  nginx-proxy-manager:
+    driver: bridge
