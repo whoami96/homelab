@@ -17,4 +17,4 @@ services:
       ND_REVERSEPROXYWHITELIST: "0.0.0.0/0"
     volumes:
       - "/home/whoami/docker/docker_volumes/NaviData:/data"
-      - "/mnt/media/Muzyka:/music:ro"
+      - "/mnt/music/:/music:ro"
