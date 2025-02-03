@@ -29,7 +29,7 @@ services:
     container_name: nginx-proxy-manager-db
     restart: unless-stopped
     ports:
-      - '3306:3306'
+      - '3307:3306'
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_MYSQL_PASSWORD}
       MYSQL_DATABASE: ${DB_MYSQL_NAME}
