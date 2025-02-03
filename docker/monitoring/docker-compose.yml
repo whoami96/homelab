@@ -76,11 +76,6 @@ services:
       - "9187:9187"
     environment:
       DATA_SOURCE_NAME: "postgres://${GITEA_DB_USERNAME}:${GITEA_DB_PASSWORD}@${GITEA_DB_HOST}/${GITEA_DB_NAME}?sslmode=disable"
-    depends_on:
-      prometheus:
-        condition: service_started
-      postgresql:
-        condition: service_healthy
     restart: unless-stopped
     networks:
       - monitoring
