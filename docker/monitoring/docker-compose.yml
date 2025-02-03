@@ -75,7 +75,7 @@ services:
     ports:
       - "9187:9187"
     environment:
-      - DATA_SOURCE_URI=${DB_HOST}/postgres?sslmode=disable
+      - DATA_SOURCE_URI=${GITEA_DB_HOST}/postgres?sslmode=disable
       - DATA_SOURCE_USER=${GITEA_DB_USERNAME}
       - DATA_SOURCE_PASS=${GITEA_DB_PASSWORD}
     restart: unless-stopped
