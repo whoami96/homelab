@@ -43,4 +43,4 @@ services:
       - ansible-semaphore-mysql
 
 volumes:
-  semaphore-mysql:
+  ansible-semaphore-mysql:
