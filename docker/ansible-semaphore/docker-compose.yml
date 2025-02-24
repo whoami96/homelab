@@ -1,53 +1,51 @@
 ---
 name: ansible-semaphore
-services:
 
-  ansible-semaphore-mysql:
+services:
+  mysql:
     restart: unless-stopped
-    container_name: ansible-semaphore-mysql
-    image: mysql:9.2.0
-    hostname: ansible-semaphore-mysql
+    image: mysql:8.0
+    container_name: semaphore-mysql
+    hostname: mysql
+    command: --default-authentication-plugin=mysql_native_password
     volumes:
-      - ansible-semaphore-mysql:/var/lib/mysql
-    ports:
-      - 3307:3306
+      - semaphore-mysql:/var/lib/mysql
     environment:
       MYSQL_RANDOM_ROOT_PASSWORD: 'no'
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-    networks: 
-      - ansible-semaphore
-
-  ansible-semaphore:
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      retries: 3
+      start_period: 30s
+  
+  semaphore:
     restart: unless-stopped
-    container_name: ansible-semaphore
     ports:
       - 4000:3000
-    image: semaphoreui/semaphore:v2.12.14
+    image: semaphoreui/semaphore:v2.9.50
+    container_name: semaphore-core
     environment:
       SEMAPHORE_DB_USER: ${MYSQL_USER}
       SEMAPHORE_DB_PASS: ${MYSQL_PASSWORD}
-      SEMAPHORE_DB_HOST: ansible-semaphore-mysql
-      SEMAPHORE_DB_PORT: 3307
+      SEMAPHORE_DB_HOST: mysql
+      SEMAPHORE_DB_PORT: 3306
       SEMAPHORE_DB_DIALECT: mysql
       SEMAPHORE_DB: ${MYSQL_DATABASE}
       SEMAPHORE_PLAYBOOK_PATH: /tmp/semaphore/
       SEMAPHORE_ADMIN_PASSWORD: ${SEMAPHORE_ADMIN_PASSWORD}
       SEMAPHORE_ADMIN_NAME: ${SEMAPHORE_ADMIN_NAME}
       SEMAPHORE_ADMIN_EMAIL: ${SEMAPHORE_ADMIN_EMAIL}
-      SEMAPHORE_ADMIN: admin
-      SEMAPHORE_ACCESS_KEY_ENCRYPTION: 
+      SEMAPHORE_ACCESS_KEY_ENCRYPTION: ${SEMAPHORE_ACCESS_KEY_ENCRYPTION}
       SEMAPHORE_LDAP_ACTIVATED: 'no'
       TZ: Europe/Warsaw
-    networks: 
-      - ansible-semaphore
     depends_on:
-      - ansible-semaphore-mysql
+      mysql:
+        condition: service_healthy
 
 volumes:
-  ansible-semaphore-mysql:
+  semaphore-mysql:
 
-networks:
-  ansible-semaphore:
-    driver: bridge
