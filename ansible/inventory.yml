@@ -2,20 +2,25 @@ all:
   children:
     Docker:
       hosts:
-        docker:
-          ansible_host: 192.168.0.11
-          ansible_user: root
-          ansible_ssh_private_key_file: ~/.ssh/homelab/root
+        docker-prod:
+          ansible_host: 10.0.0.3
+          ansible_user: ansible
+          ansible_ssh_private_key_file: ~/.ssh/dev_keys/homelab/ansible
+          ansible_port: 22
+        docker-dev:
+          ansible_host: 10.0.0.5
+          ansible_user: ansible
+          ansible_ssh_private_key_file: ~/.ssh/dev_keys/homelab/ansible
           ansible_port: 22
     Linux_host:
       hosts:
-        nextcloud:
-          ansible_host: 192.168.0.12
-          ansible_user: root
-          ansible_ssh_private_key_file: ~/.ssh/homelab/root
+        zbx:
+          ansible_host: 10.0.0.4
+          ansible_user: ansible
+          ansible_ssh_private_key_file: ~/.ssh/dev_keys/homelab/ansible
           ansible_port: 22
-        gitea:
-          ansible_host: 192.168.0.13
-          ansible_user: root
-          ansible_ssh_private_key_file: ~/.ssh/homelab/root
+        pve:
+          ansible_host: 10.0.0.2
+          ansible_user: ansible
+          ansible_ssh_private_key_file: ~/.ssh/dev_keys/homelab/ansible
           ansible_port: 22
