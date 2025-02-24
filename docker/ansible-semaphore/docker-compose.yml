@@ -16,6 +16,8 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    networks: 
+      - ansible-semaphore
 
   ansible-semaphore:
     restart: unless-stopped
@@ -38,8 +40,14 @@ services:
       SEMAPHORE_ACCESS_KEY_ENCRYPTION: 
       SEMAPHORE_LDAP_ACTIVATED: 'no'
       TZ: Europe/Warsaw
+    networks: 
+      - ansible-semaphore
     depends_on:
       - ansible-semaphore-mysql
 
 volumes:
   ansible-semaphore-mysql:
+
+networks:
+  ansible-semaphore:
+    driver: bridge
