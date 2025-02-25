@@ -26,5 +26,5 @@
     - name: Make sudo without password for ansible user
       ansible.builtin.copy:
         dest: /etc/sudoers.d/80-ansible-sudo-user
-        content: "whoami ALL=(ALL) NOPASSWD:ALL"
+        content: "ansible ALL=(ALL) NOPASSWD:ALL"
         mode: '0440'
