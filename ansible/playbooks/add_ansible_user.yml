@@ -2,6 +2,7 @@
 - name: Add ansible user
   hosts: all
   gather_facts: true
+  become: true
   tasks:
     - name: Display OS Family
       ansible.builtin.debug:
