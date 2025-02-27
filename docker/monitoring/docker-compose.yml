@@ -47,7 +47,7 @@ services:
       - monitoring
 
   speedtest_exporter:
-    image: speedtest-exporter:slim
+    image:  heathcliff26/speedtest-exporter:slim
     container_name: speedtest_exporter
     restart: unless-stopped
     ports:
