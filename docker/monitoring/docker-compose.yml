@@ -43,6 +43,7 @@ services:
       - '9094:9094'
     environment:
       - DISCORD_WEBHOOK=${DISCORD_WEBHOOK}
+      - DISCORD_USERNAME=${DISCORD_USERNAME}
       - LISTEN_ADDRESS=10.0.0.3:9094
       - VERBOSE=ON
     networks:
