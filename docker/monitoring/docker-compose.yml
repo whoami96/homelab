@@ -35,19 +35,6 @@ services:
     networks:
       - monitoring
 
-  alertmanager-discord:
-    image: rogerrum/alertmanager-discord:1.0.7
-    container_name: alertmanager-discord
-    restart: unless-stopped
-    ports:
-      - '9094:9094'
-    environment:
-      - DISCORD_WEBHOOK=${DISCORD_WEBHOOK}
-      - DISCORD_USERNAME=${DISCORD_USERNAME}
-      - VERBOSE=ON
-    networks:
-      - monitoring
-
   grafana:
     image: grafana/grafana:11.5.2
     container_name: grafana
