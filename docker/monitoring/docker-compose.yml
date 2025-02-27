@@ -19,6 +19,34 @@ services:
       - '--web.enable-lifecycle'
     networks:
       - monitoring
+      
+  alertmanager:
+    image: prom/alertmanager:v0.28.0
+    container_name: alertmanager
+    restart: unless-stopped
+    ports:
+      - '9093:9093'
+    volumes:
+      - /home/whoami/docker/config/alertmanager:/etc/alertmanager/
+      - alertmanager-data:/data
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    networks:
+      - monitoring
+
+  alertmanager-discord:
+    image: rogerrum/alertmanager-discord:1.0.7
+    container_name: alertmanager-discord
+    restart: unless-stopped
+    ports:
+      - '9094:9094'
+    environment:
+      - DISCORD_WEBHOOK=${DISCORD_WEBHOOK}
+      - LISTEN_ADDRESS=10.0.0.3:9094
+      - VERBOSE=ON
+    networks:
+      - monitoring
 
   grafana:
     image: grafana/grafana:11.5.2
@@ -103,4 +131,5 @@ networks:
 
 volumes:
   prometheus_data:
+  alertmanager-data:
   grafana_data:
