@@ -3,7 +3,6 @@
   hosts: all
   gather_facts: true
   become: true
-  become_user: root
   tasks:
 
     - name: Display OS Family
@@ -35,31 +34,6 @@
           - ca-certificates
           - gnupg
           - lsb-release
+          - sudo
         state: present
       when: ansible_os_family == "Debian"
-
-    - name: Add whoami user
-      ansible.builtin.user:
-        name: whoami
-        groups:
-          - sudo
-        append: true
-        state: present
-        shell: /bin/zsh
-        create_home: true
-
-    - name: Copy SSH key to whoami user
-      ansible.posix.authorized_key:
-        user: whoami
-        state: present
-        key: "{{ lookup('file', '~/.ssh/dev_keys/homelab/whoami.pub') }}"
-
-    - name: Make sudo without password for whoami user
-      ansible.builtin.copy:
-        dest: /etc/sudoers.d/70-whoami-sudo-user
-        content: "whoami ALL=(ALL) NOPASSWD:ALL"
-        mode: '0440'
-
-# Import additional playbooks
-- import_playbook: ../tasks/oh-my-zsh.yml
-- import_playbook: ../tasks/fastfetch.yml

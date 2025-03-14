@@ -1,0 +1,53 @@
+---
+- hosts: all
+  gather_facts: true
+  tasks:
+    - name: Ensure Oh My Zsh is installed for user
+      include_role:
+        name: gantsign.oh-my-zsh
+      vars:
+        users:
+          - username: "{{ ansible_user_id }}"
+            oh_my_zsh:
+              theme: fino-time
+              plugins:
+                - git
+                - git-prompt
+                - zsh-autosuggestions
+                - zsh-syntax-highlighting
+                - fast-syntax-highlighting
+                - fzf
+              update_mode: reminder
+              update_frequency: 3
+
+    - name: Ensure Oh My Zsh plugins directory exists
+      file:
+        path: "/home/{{ ansible_user_id }}/.oh-my-zsh/custom/plugins"
+        state: directory
+        owner: "{{ ansible_user_id }}"
+        group: "{{ ansible_user_id }}"
+        mode: '0755'
+
+    - name: Clone zsh-autosuggestions plugin
+      git:
+        repo: "https://github.com/zsh-users/zsh-autosuggestions.git"
+        dest: "/home/{{ ansible_user_id }}/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
+        version: master
+        force: yes
+      become: false
+
+    - name: Clone zsh-syntax-highlighting plugin
+      git:
+        repo: "https://github.com/zsh-users/zsh-syntax-highlighting.git"
+        dest: "/home/{{ ansible_user_id }}/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
+        version: master
+        force: yes
+      become: false
+
+    - name: Clone fast-syntax-highlighting plugin
+      git:
+        repo: "https://github.com/zdharma-continuum/fast-syntax-highlighting.git"
+        dest: "/home/{{ ansible_user_id }}/.oh-my-zsh/custom/plugins/fast-syntax-highlighting"
+        version: master
+        force: yes
+      become: false

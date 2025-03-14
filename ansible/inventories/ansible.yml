@@ -1,6 +1,6 @@
 all:
   children:
-    Docker:
+    docker:
       hosts:
         docker-prod:
           ansible_host: 10.0.0.3
@@ -8,34 +8,39 @@ all:
           ansible_ssh_private_key_file: ~/.ssh/dev_keys/homelab/ansible
           ansible_port: 22
         docker-dev:
-          ansible_host: 10.0.0.5
-          ansible_user: ansible
-          ansible_ssh_private_key_file: ~/.ssh/dev_keys/homelab/ansible
-          ansible_port: 22
-    Linux_host:
-      hosts:
-        zbx:
           ansible_host: 10.0.0.4
           ansible_user: ansible
           ansible_ssh_private_key_file: ~/.ssh/dev_keys/homelab/ansible
           ansible_port: 22
-        semaphore:
+    linux_host:
+      hosts:
+        zbx:
+          ansible_host: 10.0.0.5
+          ansible_user: ansible
+          ansible_ssh_private_key_file: ~/.ssh/dev_keys/homelab/ansible
+          ansible_port: 22
+        cloudflared:
           ansible_host: 10.0.0.6
           ansible_user: ansible
           ansible_ssh_private_key_file: ~/.ssh/dev_keys/homelab/ansible
           ansible_port: 22
-        mariadb:
+        pbs:
           ansible_host: 10.0.0.7
           ansible_user: ansible
           ansible_ssh_private_key_file: ~/.ssh/dev_keys/homelab/ansible
           ansible_port: 22
-        pve:
-          ansible_host: 10.0.0.2
+        mariadb:
+          ansible_host: 10.0.0.8
           ansible_user: ansible
           ansible_ssh_private_key_file: ~/.ssh/dev_keys/homelab/ansible
           ansible_port: 22
-        omv:
-          ansible_host: 10.0.0.10
+        semaphore:
+          ansible_host: 10.0.0.9
           ansible_user: ansible
           ansible_ssh_private_key_file: ~/.ssh/dev_keys/homelab/ansible
           ansible_port: 22
+#        omv:
+#          ansible_host: 10.0.0.20
+#          ansible_user: ansible
+#          ansible_ssh_private_key_file: ~/.ssh/dev_keys/homelab/ansoble
+#          ansible_port: 22
