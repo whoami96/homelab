@@ -136,14 +136,14 @@ resource "proxmox_lxc" "pbs" {
   ostemplate      = "local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst"
   vmid            = "107"
   password        = var.proxmox_lxc_default_password
-  unprivileged    = true
+  unprivileged    = false
   cores           = "2"
   memory          = "2048"
   swap            = "2048"
   description     = "pbs"
   onboot          = true
   ostype          = "debian"
-  start           = true
+  start           = false
   tags            = "pbs;debian;lxc;terraform"
   ssh_public_keys = var.root_ssh_key
 
@@ -214,14 +214,14 @@ resource "proxmox_lxc" "semaphore" {
   ostemplate      = "local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst"
   vmid            = "109"
   password        = var.proxmox_lxc_default_password
-  unprivileged    = true
+  unprivileged    = false
   cores           = "2"
   memory          = "2048"
   swap            = "2048"
   description     = "semaphore"
   onboot          = true
   ostype          = "debian"
-  start           = true
+  start           = false
   tags            = "semaphore;debian;lxc;terraform"
   ssh_public_keys = var.root_ssh_key
 
@@ -234,6 +234,49 @@ resource "proxmox_lxc" "semaphore" {
     name   = "eth0"
     bridge = "vmbr0"
     ip     = "10.0.0.9/24"
+    gw     = "10.0.0.1"
+    ip6    = "manual"
+  }
+
+  features {
+    nesting = true
+  }
+}
+
+resource "proxmox_lxc" "nextcloud" {
+  target_node     = "pve"
+  hostname        = "nextcloud"
+  ostemplate      = "local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst"
+  vmid            = "110"
+  password        = var.proxmox_lxc_default_password
+  unprivileged    = true
+  cores           = "2"
+  memory          = "2048"
+  swap            = "2048"
+  description     = "nextcloud"
+  onboot          = true
+  ostype          = "debian"
+  start           = true
+  tags            = "nextcloud;debian;lxc;terraform"
+  ssh_public_keys = var.root_ssh_key
+
+  rootfs {
+    storage = "pve_storage"
+    size    = "50G"
+  }
+
+  mountpoint {
+    key     = "0"
+    slot    = 0
+    mp      = "/mnt/nextcloud"
+    storage = "nextcloud_storage"
+    size    = "200G"
+  }
+
+  network {
+    name   = "eth0"
+    bridge = "vmbr0"
+    ip     = "10.0.0.10/24"
     gw     = "10.0.0.1"
     ip6    = "manual"
   }

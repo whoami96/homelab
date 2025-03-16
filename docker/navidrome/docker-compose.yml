@@ -3,7 +3,7 @@ name: music-server
 
 services:
   navidrome:
-    image: deluan/navidrome:0.54.4
+    image: deluan/navidrome:0.55.1
     container_name: navidrome
     user: 1000:1000
     ports:
@@ -16,5 +16,5 @@ services:
       ND_PORT: 4533
       ND_REVERSEPROXYWHITELIST: "0.0.0.0/0"
     volumes:
-      - "/home/whoami/docker/docker_volumes/NaviData:/data"
+      - "/home/whoami/docker/volumes/NaviData:/data"
       - "/mnt/music/:/music:ro"
