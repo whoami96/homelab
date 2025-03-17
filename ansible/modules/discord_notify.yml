@@ -1,0 +1,12 @@
+- name: Send notify to Discord
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Wykonaj jakieś zadanie
+      command: echo "Hello, Ansible!"
+
+    - name: Send notify
+      community.general.discord:
+        webhook_id: "1351150806723858492"
+        webhook_token: "zz2ZW9H7s-WPhLM8vdKd7ibZ-Dq35X2ZHArvAKnlmXOiG5f_KJrF-USlcq4dej_CUNEV"
+        content: "✅ Task zakończony pomyślnie!"

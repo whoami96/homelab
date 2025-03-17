@@ -3,14 +3,34 @@
   hosts: all
   gather_facts: true
   become: true
-  tasks:
-    - name: Display OS Family
-      ansible.builtin.debug:
-        msg: "The OS family for {{ inventory_hostname }} is {{ ansible_os_family }}"
+  become_user: root
 
-    - name: "Updating and Upgrading Apt Packages"
+  tasks:
+    - name: Updating and Upgrading Apt Packages
       ansible.builtin.apt:
         update_cache: true
         cache_valid_time: 3600
         upgrade: safe
-      when: ansible_os_family == "Debian"
+      register: upgrade_result
+      ignore_errors: yes
+
+    - name: Send success notification to Discord (if updated)
+      when: upgrade_result.changed
+      community.general.discord:
+        webhook_id: "1351150806723858492"
+        webhook_token: "zz2ZW9H7s-WPhLM8vdKd7ibZ-Dq35X2ZHArvAKnlmXOiG5f_KJrF-USlcq4dej_CUNEV"
+        content: "✅ Update and upgrade completed successfully on {{ inventory_hostname }}!"
+
+    - name: Send no changes notification to Discord (if no update needed)
+      when: not upgrade_result.changed and not upgrade_result.failed
+      community.general.discord:
+        webhook_id: "1351150806723858492"
+        webhook_token: "zz2ZW9H7s-WPhLM8vdKd7ibZ-Dq35X2ZHArvAKnlmXOiG5f_KJrF-USlcq4dej_CUNEV"
+        content: "ℹ️ No updates or upgrades needed for {{ inventory_hostname }}."
+
+    - name: Send failure notification to Discord (if error occurred)
+      when: upgrade_result.failed
+      community.general.discord:
+        webhook_id: "1351150806723858492"
+        webhook_token: "zz2ZW9H7s-WPhLM8vdKd7ibZ-Dq35X2ZHArvAKnlmXOiG5f_KJrF-USlcq4dej_CUNEV"
+        content: "❌ Update and upgrade failed on {{ inventory_hostname }} with error: {{ upgrade_result.stderr }}"

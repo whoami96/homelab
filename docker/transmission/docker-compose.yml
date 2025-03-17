@@ -5,13 +5,13 @@ services:
     image: linuxserver/transmission:4.0.6
     container_name: transmission
     environment:
-      - PUID=1000
-      - PGID=1000
+      - PUID=1001
+      - PGID=1001
       - TZ=Europe/Warsaw
     volumes:
-      - /home/whoami/docker/docker_volumes/transmission/config:/config
+      - /home/whoami/docker/volumes/transmission/config:/config
       - /mnt/download:/downloads
-      - /home/whoami/docker/docker_volumes/transmission/watch:/watch
+      - /home/whoami/docker/volumes/transmission/watch:/watch
     ports:
       - 9091:9091
       - 51413:51413
