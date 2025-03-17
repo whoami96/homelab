@@ -10,7 +10,7 @@ services:
       - '9090:9090'
     volumes:
       - prometheus_data:/prometheus
-      - /home/whoami/docker/config/prometheus:/etc/prometheus/
+      - /home/whoami/docker/configs/monitoring/prometheus:/etc/prometheus/
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
@@ -21,13 +21,13 @@ services:
       - monitoring
       
   alertmanager:
-    image: prom/alertmanager:v0.28.0
+    image: prom/alertmanager:v0.28.1
     container_name: alertmanager
     restart: unless-stopped
     ports:
       - '9093:9093'
     volumes:
-      - /home/whoami/docker/config/alertmanager:/etc/alertmanager/
+      - /home/whoami/docker/configs/monitoring/alertmanager:/etc/alertmanager/
       - alertmanager-data:/data
     command:
       - '--config.file=/etc/alertmanager/alertmanager.yml'
@@ -57,16 +57,16 @@ services:
     ports:
       - '9221:9221'
     volumes:
-      - /home/whoami/docker/config/pve/pve.yml:/etc/prometheus/pve.yml
+      - /home/whoami/docker/configs/monitoring/pve/pve.yml:/etc/prometheus/pve.yml
     networks:
       - monitoring
 
   speedtest_exporter:
-    image:  heathcliff26/speedtest-exporter:slim
+    image: ghcr.io/danopstech/speedtest_exporter:latest
     container_name: speedtest_exporter
     restart: unless-stopped
     ports:
-      - '9798:8080'
+      - '9798:9090'
     networks:
       - monitoring
 
@@ -84,33 +84,21 @@ services:
     networks:
       - monitoring
 
-  gitea-postgresql-exporter:
-    image: prometheuscommunity/postgres-exporter:v0.16.0
-    container_name: gitea-postgresql-exporter
-    ports:
-      - "9187:9187"
-    environment:
-      - DATA_SOURCE_URI=${GITEA_DB_HOST}/postgres?sslmode=disable
-      - DATA_SOURCE_USER=${GITEA_DB_USERNAME}
-      - DATA_SOURCE_PASS=${GITEA_DB_PASSWORD}
-    restart: unless-stopped
-    networks:
-      - monitoring
 
-  nextcloud-exporter:
-    image: ghcr.io/xperimental/nextcloud-exporter:0.8.0
-    container_name: nextcloud-exporter
-    restart: unless-stopped
-    environment:
-      - NEXTCLOUD_SERVER=${NEXTCLOUD_SERVER}
-      - NEXTCLOUD_AUTH_TOKEN=${NEXTCLOUD_AUTH_TOKEN}
-      - NEXTCLOUD_TLS_SKIP_VERIFY=${NEXTCLOUD_TLS_SKIP_VERIFY}
-      - NEXTCLOUD_INFO_APPS=${NEXTCLOUD_INFO_APPS}
-      - NEXTCLOUD_INFO_UPDATE=${NEXTCLOUD_INFO_UPDATE}
-    ports:
-      - "9205:9205"
-    networks:
-      - monitoring
+#  nextcloud-exporter:
+#    image: ghcr.io/xperimental/nextcloud-exporter:0.8.0
+#    container_name: nextcloud-exporter
+#    restart: unless-stopped
+#    environment:
+#      - NEXTCLOUD_SERVER=${NEXTCLOUD_SERVER}
+#      - NEXTCLOUD_AUTH_TOKEN=${NEXTCLOUD_AUTH_TOKEN}
+#      - NEXTCLOUD_TLS_SKIP_VERIFY=${NEXTCLOUD_TLS_SKIP_VERIFY}
+#      - NEXTCLOUD_INFO_APPS=${NEXTCLOUD_INFO_APPS}
+#      - NEXTCLOUD_INFO_UPDATE=${NEXTCLOUD_INFO_UPDATE}
+#    ports:
+#      - "9205:9205"
+#    networks:
+#      - monitoring
 
 networks:
   monitoring:
