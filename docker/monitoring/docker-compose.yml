@@ -98,7 +98,7 @@ services:
     ports:
       - "9205:9205"
     networks:
-      - monitorin
+      - monitoring
 
 networks:
   monitoring:
