@@ -85,20 +85,20 @@ services:
       - monitoring
 
 
-#  nextcloud-exporter:
-#    image: ghcr.io/xperimental/nextcloud-exporter:0.8.0
-#    container_name: nextcloud-exporter
-#    restart: unless-stopped
-#    environment:
-#      - NEXTCLOUD_SERVER=${NEXTCLOUD_SERVER}
-#      - NEXTCLOUD_AUTH_TOKEN=${NEXTCLOUD_AUTH_TOKEN}
-#      - NEXTCLOUD_TLS_SKIP_VERIFY=${NEXTCLOUD_TLS_SKIP_VERIFY}
-#      - NEXTCLOUD_INFO_APPS=${NEXTCLOUD_INFO_APPS}
-#      - NEXTCLOUD_INFO_UPDATE=${NEXTCLOUD_INFO_UPDATE}
-#    ports:
-#      - "9205:9205"
-#    networks:
-#      - monitoring
+  nextcloud-exporter:
+    image: ghcr.io/xperimental/nextcloud-exporter:0.8.0
+    container_name: nextcloud-exporter
+    restart: unless-stopped
+    environment:
+      - NEXTCLOUD_SERVER=${NEXTCLOUD_SERVER}
+      - NEXTCLOUD_AUTH_TOKEN=${NEXTCLOUD_AUTH_TOKEN}
+      - NEXTCLOUD_TLS_SKIP_VERIFY=${NEXTCLOUD_TLS_SKIP_VERIFY}
+      - NEXTCLOUD_INFO_APPS=${NEXTCLOUD_INFO_APPS}
+      - NEXTCLOUD_INFO_UPDATE=${NEXTCLOUD_INFO_UPDATE}
+    ports:
+      - "9205:9205"
+    networks:
+      - monitoring
 
 networks:
   monitoring:
