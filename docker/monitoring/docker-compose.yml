@@ -46,7 +46,7 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
     volumes:
       - grafana_data:/var/lib/grafana
-      - /home/whoami/docker/config/grafana_dashboard:/etc/grafana/provisioning/datasources
+      - /home/whoami/docker/configs/grafana_dashboard:/etc/grafana/provisioning/datasources
     networks:
       - monitoring
 
