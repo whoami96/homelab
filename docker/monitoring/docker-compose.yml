@@ -3,7 +3,7 @@ name: monitoring
 
 services:
   prometheus:
-    image: prom/prometheus:v3.3.0
+    image: prom/prometheus:v3.3.1
     container_name: prometheus
     restart: unless-stopped
     ports:
@@ -36,7 +36,7 @@ services:
       - monitoring
 
   grafana:
-    image: grafana/grafana:11.6.0
+    image: grafana/grafana:11.6.1
     container_name: grafana
     restart: unless-stopped
     ports:
@@ -51,7 +51,7 @@ services:
       - monitoring
 
   pve_exporter:
-    image: prompve/prometheus-pve-exporter:3.5.3
+    image: prompve/prometheus-pve-exporter:3.5.4
     container_name: pve_exporter
     restart: unless-stopped
     ports:
