@@ -30,17 +30,17 @@ resource "proxmox_lxc" "docker-prod" {
 
 }
 
-resource "proxmox_lxc" "docker-dev" {
+resource "proxmox_lxc" "pihole" {
   target_node     = "pve"
-  hostname        = "docker-dev"
+  hostname        = "pihole"
   ostemplate      = "local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst"
   vmid            = "104"
   password        = var.proxmox_lxc_default_password
-  unprivileged    = false
-  cores           = "2"
+  unprivileged    = true
+  cores           = "1"
   memory          = "1024"
   swap            = "2048"
-  description     = "docker-dev"
+  description     = "pihole"
   onboot          = true
   ostype          = "debian"
   start           = false
@@ -136,7 +136,7 @@ resource "proxmox_lxc" "pbs" {
   ostemplate      = "local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst"
   vmid            = "107"
   password        = var.proxmox_lxc_default_password
-  unprivileged    = false
+  unprivileged    = true
   cores           = "2"
   memory          = "2048"
   swap            = "2048"
