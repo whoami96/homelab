@@ -35,7 +35,7 @@ services:
       - POSTGRES_DB=${DB_NAME}
       - TZ=Europe/Warsaw
     ports:
-      - 5432:5432
+      - "5432:5432"
     networks:
       - gitea
     volumes:
