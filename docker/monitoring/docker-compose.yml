@@ -3,14 +3,14 @@ name: monitoring
 
 services:
   prometheus:
-    image: prom/prometheus:v3.5.0
+    image: prom/prometheus:v3.7.1
     container_name: prometheus
     restart: unless-stopped
     ports:
-      - '9090:9090'
+      - '9080:9090'
     volumes:
       - prometheus_data:/prometheus
-      - /home/whoami/docker/configs/monitoring/prometheus:/etc/prometheus/
+      - /home/whoami/Data/repo/homelab/docker/monitoring/prometheus:/etc/prometheus/
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
@@ -19,7 +19,7 @@ services:
       - '--web.enable-lifecycle'
     networks:
       - monitoring
-      
+
   alertmanager:
     image: prom/alertmanager:v0.28.1
     container_name: alertmanager
@@ -27,7 +27,7 @@ services:
     ports:
       - '9093:9093'
     volumes:
-      - /home/whoami/docker/configs/monitoring/alertmanager:/etc/alertmanager/
+      - /home/whoami/Data/repo/homelab/docker/monitoring/alertmanager:/etc/alertmanager/
       - alertmanager-data:/data
     command:
       - '--config.file=/etc/alertmanager/alertmanager.yml'
@@ -36,7 +36,7 @@ services:
       - monitoring
 
   grafana:
-    image: grafana/grafana:12.1.1
+    image: grafana/grafana:12.2.0
     container_name: grafana
     restart: unless-stopped
     ports:
@@ -46,30 +46,9 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
     volumes:
       - grafana_data:/var/lib/grafana
-      - /home/whoami/docker/configs/monitoring/grafana_dashboard:/etc/grafana/provisioning/datasources
+      - /home/whoami/Data/repo/homelab/docker/monitoring/grafana_dashboard:/etc/grafana/provisioning/datasources
     networks:
       - monitoring
-
-  pve_exporter:
-    image: prompve/prometheus-pve-exporter:3.5.5
-    container_name: pve_exporter
-    restart: unless-stopped
-    ports:
-      - '9221:9221'
-    volumes:
-      - /home/whoami/docker/configs/monitoring/pve/pve.yml:/etc/prometheus/pve.yml
-    networks:
-      - monitoring
-
-  speedtest_exporter:
-    image: ghcr.io/danopstech/speedtest_exporter:latest
-    container_name: speedtest_exporter
-    restart: unless-stopped
-    ports:
-      - '9798:9090'
-    networks:
-      - monitoring
-
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:v0.52.0
     container_name: cadvisor_exporter
@@ -85,7 +64,7 @@ services:
       - monitoring
 
   nextcloud-exporter:
-    image: ghcr.io/xperimental/nextcloud-exporter:0.8.0
+    image: xperimental/nextcloud-exporter:0.9.0
     container_name: nextcloud-exporter
     restart: unless-stopped
     environment:
@@ -98,8 +77,11 @@ services:
       - "9205:9205"
     networks:
       - monitoring
+      - nextcloud
 
 networks:
+  nextcloud:
+    driver: bridge
   monitoring:
     driver: bridge
 

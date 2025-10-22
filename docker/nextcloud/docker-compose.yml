@@ -3,7 +3,7 @@ name: nextcloud
 
 services:
   nextcloud:
-    image: nextcloud:30.0.5-apache
+    image: nextcloud:32.0.0
     restart: unless-stopped
     container_name: nextcloud
     ports:
@@ -20,7 +20,7 @@ services:
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
 
   nextcloud-redis:
-    image: redis:8.0-M02-bookworm
+    image: redis:8.2.2-bookworm
     restart: unless-stopped
     container_name: nextcloud-redis
     networks:
@@ -29,7 +29,7 @@ services:
       - '6379:6379'
 
   nextcloud-mariadb:
-    image: mariadb:11.6.2-noble
+    image: mariadb:11.8-ubi
     restart: unless-stopped
     container_name: nextcloud-mariadb
     command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW

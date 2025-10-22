@@ -2,7 +2,7 @@
 name: gitea
 services:
   server:
-    image: docker.io/gitea/gitea:1.23.1
+    image: docker.io/gitea/gitea:1.24
     container_name: gitea
     environment:
       - USER_UID=1000
@@ -26,7 +26,7 @@ services:
       - gitea-db
 
   gitea-db:
-    image: docker.io/library/postgres:17.2
+    image: docker.io/library/postgres:17.6
     container_name: gitea-db
     restart: always
     environment:
