@@ -6,7 +6,7 @@ global:
 alerting:
   alertmanagers:
     - static_configs:
-        - targets: []
+        - targets: ['alertmanager:9093']
       scheme: http
       timeout: 10s
       api_version: v2
@@ -27,23 +27,32 @@ scrape_configs:
     scheme: http
     static_configs:
       - targets:
-          - "10.0.0.2:9080"
+          - "localhost:9090"
 
-  - job_name: "cadvisor-exporter"
+  - job_name: 'alertmanager'
+    metrics_path: /metrics
+    scheme: http
     static_configs:
       - targets:
-          - "10.0.0.2:9998"
+          - 'alertmanager:9093'
 
   - job_name: "pwrstat-exporter"
     metrics_path: /metrics
     scheme: http
     static_configs:
       - targets:
-          - "10.0.0.2:8088"
+          - "pwrstat-exporter:8088"
 
   - job_name: "nextcloud-exporter"
     metrics_path: /metrics
     scheme: http
     static_configs:
       - targets:
-          - "10.0.0.2:9205"
+          - "nextcloud-exporter:9205"
+
+  - job_name: "podman-exporter"
+    metrics_path: /metrics
+    scheme: http
+    static_configs:
+      - targets:
+          - "10.0.0.2:9882"

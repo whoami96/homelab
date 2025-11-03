@@ -1,0 +1,46 @@
+services:
+  nextcloud:
+    image: docker.io/library/nextcloud:32.0.0
+    restart: unless-stopped
+    container_name: nextcloud
+    ports:
+      - '8080:80'
+    volumes:
+      - /mnt/apps-data/nextcloud/:/var/www/html 
+    environment:
+      REDIS_HOST: nextcloud-redis
+      MYSQL_HOST: nextcloud-mariadb
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    networks:
+      - nextcloud_net
+
+  nextcloud-redis:
+    image: docker.io/library/redis:8.2.2-bookworm
+    restart: unless-stopped
+    container_name: nextcloud-redis
+    networks:
+      - nextcloud_net
+
+  nextcloud-mariadb:
+    image: docker.io/library/mariadb:11.8-ubi
+    restart: unless-stopped
+    container_name: nextcloud-mariadb
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    volumes:
+      - nextcloud-mariadb_data:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    networks:
+      - nextcloud_net
+    
+volumes:
+  nextcloud-mariadb_data:
+
+networks:
+  nextcloud_net:
+    driver: bridge

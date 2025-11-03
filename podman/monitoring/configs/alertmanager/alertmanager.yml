@@ -1,0 +1,38 @@
+---
+# alertmanager.yml
+
+global:
+  # Opcjonalnie: Jeśli używasz zewnętrznej usługi SMTP (e-mail)
+  # smtp_smarthost: 'smtp.twojadomena.pl:587'
+  # smtp_from: 'alertmanager@nexus.lab'
+  # smtp_auth_username: 'user'
+  # smtp_auth_password: 'password'
+  
+route:
+  # Wymagane: Gdzie kierować alerty, jeśli nie pasują do żadnej reguły.
+  # Domyślnie wysyłamy do 'null' (domyślny odbiorca poniżej).
+  receiver: 'default-receiver'
+  
+  # Opcjonalnie: Użyj tej opcji, aby uniknąć redundancji (szumienia) w alertach
+  group_by: ['alertname', 'instance']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 3h # Wysyłaj alerty co 3 godziny, jeśli nie zostały rozwiązane
+
+receivers:
+  # 1. Domyślny, pusty odbiorca, który zapobiega błędom
+  - name: 'default-receiver'
+
+  # 2. Przykładowa konfiguracja (np. Webhook do Slacka/Discorda)
+  # - name: 'webhook-alerts'
+  #   webhook_configs:
+  #     - url: 'http://<ADRES_URL_TWOJEGO_WEBHOOKA>' 
+
+# Inhibit rules: Opcjonalne, zapobiegają wysyłaniu alarmów podrzędnych
+inhibit_rules:
+  # Gdy instancja jest niedostępna (Down), nie wysyłaj alertów o wysokim użyciu CPU dla tej instancji.
+  - source_match:
+      severity: 'critical'
+    target_match:
+      alertname: 'InstanceDown'
+    equal: ['instance']

@@ -1,16 +1,13 @@
----
-name: monitoring
-
 services:
   prometheus:
-    image: prom/prometheus:v3.7.1
+    image: docker.io/prom/prometheus:v3.7.1
     container_name: prometheus
     restart: unless-stopped
     ports:
       - '9080:9090'
     volumes:
       - prometheus_data:/prometheus
-      - /home/whoami/Data/repo/homelab/docker/monitoring/prometheus:/etc/prometheus/
+      - /home/whoami/repo/homelab/podman/monitoring/configs/prometheus:/etc/prometheus/
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
@@ -21,13 +18,13 @@ services:
       - monitoring
 
   alertmanager:
-    image: prom/alertmanager:v0.28.1
+    image: docker.io/prom/alertmanager:v0.28.1
     container_name: alertmanager
     restart: unless-stopped
     ports:
       - '9093:9093'
     volumes:
-      - /home/whoami/Data/repo/homelab/docker/monitoring/alertmanager:/etc/alertmanager/
+      - /home/whoami/repo/homelab/podman/monitoring/configs/alertmanager:/etc/alertmanager/
       - alertmanager-data:/data
     command:
       - '--config.file=/etc/alertmanager/alertmanager.yml'
@@ -36,7 +33,7 @@ services:
       - monitoring
 
   grafana:
-    image: grafana/grafana:12.2.0
+    image: docker.io/grafana/grafana:12.2.1
     container_name: grafana
     restart: unless-stopped
     ports:
@@ -46,25 +43,25 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
     volumes:
       - grafana_data:/var/lib/grafana
-      - /home/whoami/Data/repo/homelab/docker/monitoring/grafana_dashboard:/etc/grafana/provisioning/datasources
-    networks:
-      - monitoring
-  cadvisor:
-    image: gcr.io/cadvisor/cadvisor:v0.52.0
-    container_name: cadvisor_exporter
-    restart: unless-stopped
-    ports:
-      - '9998:8080'
-    volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:rw
-      - /sys:/sys:ro
-      - /var/lib/docker/:/var/lib/docker:ro
+      - /home/whoami/repo/homelab/podman/monitoring/configs/grafana_dashboards:/etc/grafana/provisioning/datasources
     networks:
       - monitoring
 
+  pwrstat-exporter:
+    image: docker.io/cardif99/pwrstat-exporter:latest
+    container_name: pwrstat-exporter
+    restart: unless-stopped
+    ports:
+      - '8088:8088'
+    networks:
+      - monitoring
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+      - /dev/usb/hiddev0:/dev/usb/hiddev0
+    privileged: true
+
   nextcloud-exporter:
-    image: xperimental/nextcloud-exporter:0.9.0
+    image: docker.io/xperimental/nextcloud-exporter:0.9.0
     container_name: nextcloud-exporter
     restart: unless-stopped
     environment:
@@ -77,13 +74,25 @@ services:
       - "9205:9205"
     networks:
       - monitoring
-      - nextcloud
+      - nextcloud_net
+
+  podman-exporter:
+    image: quay.io/navidys/prometheus-podman-exporter
+    container_name: podman-exporter
+    restart: unless-stopped
+    ports:
+      - '9882:9882'
+    environment:
+      CONTAINER_HOST: tcp://10.0.0.2:2375
+    network_mode: host 
+    volumes: []
 
 networks:
-  nextcloud:
-    driver: bridge
   monitoring:
     driver: bridge
+  nextcloud_net:
+    external: true
+    name: nextcloud_net
 
 volumes:
   prometheus_data:
