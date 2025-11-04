@@ -8,3 +8,5 @@ terraform.tfstate
 backend.tf
 .vscode
 .idea
+bandwidth-groups.json
+settings.json

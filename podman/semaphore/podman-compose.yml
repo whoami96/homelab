@@ -1,13 +1,10 @@
----
-name: semaphore
-
 services:
   semaphore:
     restart: unless-stopped
     env_file: ./.env
     ports:
-      - 4000:3000
-    image: semaphoreui/semaphore:v2.16.34
+      - '4000:3000'
+    image: docker.io/semaphoreui/semaphore:v2.16.37
     container_name: semaphore-core
     volumes:
       - semaphore_playbook:/tmp/semaphore/
@@ -33,7 +30,7 @@ services:
       - semaphore-mariadb
 
   semaphore-mariadb:
-    image: mariadb:11.8-ubi
+    image: docker.io/library/mariadb:11.8-ubi
     restart: unless-stopped
     env_file: ./.env
     container_name: semaphore-mariadb
@@ -43,13 +40,12 @@ services:
     networks:
       - semaphore
     environment:
-      - MYSQL_DATABASE=${MYSQL_DATABASE}
-      - MYSQL_USER=${MYSQL_USER}
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
       - '3307:3306'
-
 volumes:
   semaphore-mariadb_data:
   semaphore_playbook:

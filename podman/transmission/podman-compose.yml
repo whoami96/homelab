@@ -1,0 +1,17 @@
+services:
+  transmission:
+    image: docker.io/linuxserver/transmission:4.0.6
+    container_name: transmission
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/Warsaw
+    volumes:
+      - /home/whoami/repo/homelab/podman/transmission/config:/config
+      - /mnt/nexus-storage/Downloaded/:/downloads
+      - /home/whoami/repo/homelab/podman/transmission/watch:/watch
+    ports:
+      - 9091:9091
+      - 51413:51413
+      - 51413:51413/udp
+    restart: unless-stopped

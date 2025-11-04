@@ -1,0 +1,36 @@
+version: "3.5"
+
+services:
+  diun_app:
+    image: docker.io/crazymax/diun:latest
+    container_name: diun
+    restart: always
+
+    # Mapowanie Gniazda Rootless (UID 1000 - zmień, jeśli Twój UID jest inny!)
+    volumes:
+      - /run/user/1000/podman/podman.sock:/var/run/docker.sock:ro
+      # Mapowanie pliku konfiguracyjnego
+      - ./config/diun.yml:/data/config.yml:ro
+
+    environment:
+      # --- Poprawne Mapowanie Klucz: Wartość ---
+      CONTAINER_HOST: unix:///var/run/docker.sock
+      TZ: Europe/Warsaw
+      DIUN_WATCH_WORKERS: 20
+      DIUN_WATCH_SCHEDULE: 0 */6 * * *
+      DIUN_WATCH_JITTER: 30s
+      DIUN_PROVIDERS_DOCKER: true
+      DIUN_PROVIDERS_DOCKER_WATCHBYDEFAULT: true
+
+    labels:
+      - "diun.enable=true"
+
+    # Kontener musi mieć dostęp do sieci Podman
+    networks:
+      - default
+
+networks:
+  default:
+    external: true
+    # Nazwa domyślnej sieci Podmana rootless (zazwyczaj "podman")
+    name: podman

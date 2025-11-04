@@ -6,7 +6,7 @@ services:
     ports:
       - '8080:80'
     volumes:
-      - /mnt/apps-data/nextcloud/:/var/www/html 
+      - /mnt/apps-data/nextcloud/:/var/www/html
     environment:
       REDIS_HOST: nextcloud-redis
       MYSQL_HOST: nextcloud-mariadb
@@ -15,11 +15,15 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     networks:
       - nextcloud_net
+    depends_on:
+      - nextcloud-mariadb
 
   nextcloud-redis:
     image: docker.io/library/redis:8.2.2-bookworm
     restart: unless-stopped
     container_name: nextcloud-redis
+    ports:
+      - "6379:6379"
     networks:
       - nextcloud_net
 
@@ -27,7 +31,8 @@ services:
     image: docker.io/library/mariadb:11.8-ubi
     restart: unless-stopped
     container_name: nextcloud-mariadb
-    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    ports:
+      - "3306:3306"
     volumes:
       - nextcloud-mariadb_data:/var/lib/mysql
     environment:
@@ -35,9 +40,15 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_HOST: "%"
     networks:
       - nextcloud_net
-    
+    command:
+      - mysqld
+      - --transaction-isolation=READ-COMMITTED
+      - --binlog-format=ROW
+      - --bind-address=0.0.0.0
+
 volumes:
   nextcloud-mariadb_data:
 

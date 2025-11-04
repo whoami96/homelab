@@ -1,0 +1,10 @@
+watch:
+  all: true
+
+providers:
+  docker:
+    watchbydefault: true
+
+notif:
+  discord:
+    webhookURL: "https://discordapp.com/api/webhooks/1435051694219067573/QYVx6fzSbpsDHCkHOhou4QzktwCsdL_A-smXyFwHRc7__sp1opX5bSvwNLQJ-ivOtIzw"
