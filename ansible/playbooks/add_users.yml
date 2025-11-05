@@ -32,13 +32,13 @@
       ansible.posix.authorized_key:
         user: ansible
         state: present
-        key: "{{ lookup('file', '~/.ssh/dev_keys/homelab/ansible.pub') }}"
+        key: "{{ lookup('file', '~/.ssh/keys/homelab/ansible.pub') }}"
 
     - name: Copy SSH key to whoami user
       ansible.posix.authorized_key:
         user: whoami
         state: present
-        key: "{{ lookup('file', '~/.ssh/dev_keys/homelab/whoami.pub') }}"
+        key: "{{ lookup('file', '~/.ssh/keys/homelab/whoami.pub') }}"
 
     - name: Make sudo without password for ansible user
       ansible.builtin.copy:
