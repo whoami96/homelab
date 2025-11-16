@@ -17,7 +17,7 @@ scrape_configs:
     scheme: http
     static_configs:
       - targets:
-          - "10.0.0.2:9100"
+          - "10.0.0.5:9100"
 
   - job_name: prometheus
     honor_timestamps: true
@@ -55,4 +55,4 @@ scrape_configs:
     scheme: http
     static_configs:
       - targets:
-          - "10.0.0.2:9882"
+          - "10.0.0.5:9882"

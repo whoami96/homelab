@@ -1,7 +1,5 @@
 services:
   semaphore:
-    restart: unless-stopped
-    env_file: ./.env
     ports:
       - '4000:3000'
     image: docker.io/semaphoreui/semaphore:v2.16.37
@@ -12,12 +10,12 @@ services:
     networks:
       - semaphore
     environment:
-      SEMAPHORE_DB_USER: ${MYSQL_USER}
-      SEMAPHORE_DB_PASS: ${MYSQL_PASSWORD}
+      SEMAPHORE_DB_USER: ${SEMAPHORE_DB_USER}
+      SEMAPHORE_DB_PASS: ${SEMAPHORE_DB_PASS}
       SEMAPHORE_DB_HOST: semaphore-mariadb
       SEMAPHORE_DB_PORT: 3306
       SEMAPHORE_DB_DIALECT: mysql
-      SEMAPHORE_DB: ${MYSQL_DATABASE}
+      SEMAPHORE_DB: ${SEMAPHORE_DB}
       SEMAPHORE_PLAYBOOK_PATH: /tmp/semaphore/
       SEMAPHORE_ADMIN_PASSWORD: ${SEMAPHORE_ADMIN_PASSWORD}
       SEMAPHORE_ADMIN_NAME: ${SEMAPHORE_ADMIN_NAME}
@@ -31,8 +29,6 @@ services:
 
   semaphore-mariadb:
     image: docker.io/library/mariadb:11.8-ubi
-    restart: unless-stopped
-    env_file: ./.env
     container_name: semaphore-mariadb
     command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
     volumes:
@@ -40,12 +36,13 @@ services:
     networks:
       - semaphore
     environment:
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_DATABASE: ${SEMAPHORE_DB}
+      MYSQL_USER: ${SEMAPHORE_DB_USER}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_PASSWORD: ${SEMAPHORE_DB_PASS}
     ports:
       - '3307:3306'
+
 volumes:
   semaphore-mariadb_data:
   semaphore_playbook:
