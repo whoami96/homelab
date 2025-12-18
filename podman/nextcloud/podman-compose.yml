@@ -1,14 +1,14 @@
 services:
   nextcloud:
-    image: docker.io/library/nextcloud:32.0.0
-    restart: unless-stopped
+    image: docker.io/library/nextcloud:32.0.1
     container_name: nextcloud
     ports:
       - '8080:80'
     volumes:
-      - /mnt/apps-data/nextcloud/:/var/www/html
+      - /mnt/apps_data/nextcloud/:/var/www/html
     environment:
       REDIS_HOST: nextcloud-redis
+      NEXTCLOUD_APPAPI_DEPLOYMENT_DAEMON_DEFAULT: local
       MYSQL_HOST: nextcloud-mariadb
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
@@ -20,19 +20,17 @@ services:
 
   nextcloud-redis:
     image: docker.io/library/redis:8.2.2-bookworm
-    restart: unless-stopped
     container_name: nextcloud-redis
     ports:
-      - "6379:6379"
+      - '6379:6379'
     networks:
       - nextcloud_net
 
   nextcloud-mariadb:
     image: docker.io/library/mariadb:11.8-ubi
-    restart: unless-stopped
     container_name: nextcloud-mariadb
     ports:
-      - "3306:3306"
+      - '3306:3306'
     volumes:
       - nextcloud-mariadb_data:/var/lib/mysql
     environment:

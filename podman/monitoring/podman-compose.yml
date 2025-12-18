@@ -1,8 +1,7 @@
 services:
   prometheus:
-    image: docker.io/prom/prometheus:v3.7.1
+    image: docker.io/prom/prometheus:v3.7.3
     container_name: prometheus
-    restart: unless-stopped
     ports:
       - '9080:9090'
     volumes:
@@ -20,7 +19,6 @@ services:
   alertmanager:
     image: docker.io/prom/alertmanager:v0.28.1
     container_name: alertmanager
-    restart: unless-stopped
     ports:
       - '9093:9093'
     volumes:
@@ -35,12 +33,12 @@ services:
   grafana:
     image: docker.io/grafana/grafana:12.2.1
     container_name: grafana
-    restart: unless-stopped
     ports:
       - '3000:3000'
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      - GF_AUTH_ANONYMOUS_ENABLED=false
     volumes:
       - grafana_data:/var/lib/grafana
       - /home/whoami/repo/homelab/podman/monitoring/configs/grafana_dashboards:/etc/grafana/provisioning/datasources
@@ -50,7 +48,6 @@ services:
   pwrstat-exporter:
     image: docker.io/cardif99/pwrstat-exporter:latest
     container_name: pwrstat-exporter
-    restart: unless-stopped
     ports:
       - '8088:8088'
     networks:
@@ -60,21 +57,21 @@ services:
       - /dev/usb/hiddev0:/dev/usb/hiddev0
     privileged: true
 
-  nextcloud-exporter:
-    image: docker.io/xperimental/nextcloud-exporter:0.9.0
-    container_name: nextcloud-exporter
-    restart: unless-stopped
-    environment:
-      - NEXTCLOUD_SERVER=${NEXTCLOUD_SERVER}
-      - NEXTCLOUD_AUTH_TOKEN=${NEXTCLOUD_AUTH_TOKEN}
-      - NEXTCLOUD_TLS_SKIP_VERIFY=${NEXTCLOUD_TLS_SKIP_VERIFY}
-      - NEXTCLOUD_INFO_APPS=${NEXTCLOUD_INFO_APPS}
-      - NEXTCLOUD_INFO_UPDATE=${NEXTCLOUD_INFO_UPDATE}
-    ports:
-      - "9205:9205"
-    networks:
-      - monitoring
-      - nextcloud_net
+  # nextcloud-exporter:
+  #   image: docker.io/xperimental/nextcloud-exporter:0.9.0
+  #   container_name: nextcloud-exporter
+  #   restart: unless-stopped
+  #   environment:
+  #     - NEXTCLOUD_SERVER=${NEXTCLOUD_SERVER}
+  #     - NEXTCLOUD_AUTH_TOKEN=${NEXTCLOUD_AUTH_TOKEN}
+  #     - NEXTCLOUD_TLS_SKIP_VERIFY=${NEXTCLOUD_TLS_SKIP_VERIFY}
+  #     - NEXTCLOUD_INFO_APPS=${NEXTCLOUD_INFO_APPS}
+  #     - NEXTCLOUD_INFO_UPDATE=${NEXTCLOUD_INFO_UPDATE}
+  #   ports:
+  #     - "9205:9205"
+  #   networks:
+  #     - monitoring
+  #     - nextcloud_net
 
   podman-exporter:
     image: quay.io/navidys/prometheus-podman-exporter
@@ -83,7 +80,7 @@ services:
     ports:
       - '9882:9882'
     environment:
-      CONTAINER_HOST: tcp://10.0.0.2:2375
+      CONTAINER_HOST: tcp://127.0.0.1:2375
     network_mode: host 
     volumes: []
 
