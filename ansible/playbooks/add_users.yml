@@ -22,7 +22,7 @@
       ansible.builtin.user:
         name: whoami
         groups:
-        - sudo
+          - sudo
         append: true
         state: present
         shell: /bin/bash
@@ -44,10 +44,10 @@
       ansible.builtin.copy:
         dest: /etc/sudoers.d/80-ansible-sudo-user
         content: "ansible ALL=(ALL) NOPASSWD:ALL"
-        mode: '0440'
+        mode: "0440"
 
     - name: Make sudo without password for whoami user
       ansible.builtin.copy:
         dest: /etc/sudoers.d/70-whoami-sudo-user
         content: "whoami ALL=(ALL) NOPASSWD:ALL"
-        mode: '0440'
+        mode: "0440"
