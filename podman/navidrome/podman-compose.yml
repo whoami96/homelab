@@ -1,11 +1,10 @@
 services:
   navidrome:
-    image: docker.io/deluan/navidrome:0.58.0
+    image: docker.io/deluan/navidrome:0.59.0
     container_name: navidrome
     user: ${PUID}:${PGID}
     ports:
       - "4533:4533"
-    restart: unless-stopped
     environment:
       PUID: ${PUID}
       PGID: ${PGID}
@@ -16,7 +15,7 @@ services:
       ND_REVERSEPROXYWHITELIST: "0.0.0.0/0"
     volumes:
       - navidrome_data:/data
-      - "/mnt/nexus-storage/Muzyka/:/music:ro"
+      - "/mnt/nexus_storage/Muzyka/:/music:ro"
 
 volumes:
   navidrome_data:
