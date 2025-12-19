@@ -1,6 +1,6 @@
 services:
   prometheus:
-    image: docker.io/prom/prometheus:v3.7.3
+    image: docker.io/prom/prometheus:v3.8.1
     container_name: prometheus
     ports:
       - '9080:9090'
@@ -17,7 +17,7 @@ services:
       - monitoring
 
   alertmanager:
-    image: docker.io/prom/alertmanager:v0.28.1
+    image: docker.io/prom/alertmanager:v0.30.0
     container_name: alertmanager
     ports:
       - '9093:9093'
@@ -31,7 +31,7 @@ services:
       - monitoring
 
   grafana:
-    image: docker.io/grafana/grafana:12.2.1
+    image: docker.io/grafana/grafana:12.3.1
     container_name: grafana
     ports:
       - '3000:3000'
@@ -57,39 +57,36 @@ services:
       - /dev/usb/hiddev0:/dev/usb/hiddev0
     privileged: true
 
-  # nextcloud-exporter:
-  #   image: docker.io/xperimental/nextcloud-exporter:0.9.0
-  #   container_name: nextcloud-exporter
-  #   restart: unless-stopped
-  #   environment:
-  #     - NEXTCLOUD_SERVER=${NEXTCLOUD_SERVER}
-  #     - NEXTCLOUD_AUTH_TOKEN=${NEXTCLOUD_AUTH_TOKEN}
-  #     - NEXTCLOUD_TLS_SKIP_VERIFY=${NEXTCLOUD_TLS_SKIP_VERIFY}
-  #     - NEXTCLOUD_INFO_APPS=${NEXTCLOUD_INFO_APPS}
-  #     - NEXTCLOUD_INFO_UPDATE=${NEXTCLOUD_INFO_UPDATE}
-  #   ports:
-  #     - "9205:9205"
-  #   networks:
-  #     - monitoring
-  #     - nextcloud_net
+  nextcloud-exporter:
+    image: docker.io/xperimental/nextcloud-exporter:0.9.0
+    container_name: nextcloud-exporter
+    environment:
+      - NEXTCLOUD_SERVER=${NEXTCLOUD_SERVER}
+      - NEXTCLOUD_AUTH_TOKEN=${NEXTCLOUD_AUTH_TOKEN}
+      - NEXTCLOUD_TLS_SKIP_VERIFY=${NEXTCLOUD_TLS_SKIP_VERIFY}
+    ports:
+      - "9205:9205"
+    networks:
+      - monitoring
 
   podman-exporter:
     image: quay.io/navidys/prometheus-podman-exporter
     container_name: podman-exporter
-    restart: unless-stopped
+    networks:
+      - monitoring
     ports:
       - '9882:9882'
     environment:
-      CONTAINER_HOST: tcp://127.0.0.1:2375
-    network_mode: host 
-    volumes: []
+      - CONTAINER_HOST=unix:///run/podman/podman.sock
+    volumes:
+      - /run/podman/podman.sock:/run/podman/podman.sock
+    user: root
+    security_opt:
+      - label=disable
 
 networks:
   monitoring:
     driver: bridge
-  nextcloud_net:
-    external: true
-    name: nextcloud_net
 
 volumes:
   prometheus_data:

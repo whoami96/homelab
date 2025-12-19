@@ -1,5 +1,0 @@
-proxmox_api_url              = "https://10.0.0.2:8006/api2/json"
-proxmox_api_user             = "terraform-prov@pve!opentofu"
-proxmox_api_key              = "3ba34bad-4dd8-464f-abcd-2843a5eead8e"
-proxmox_lxc_default_password = "xzqYYkvk"
-root_ssh_key                 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFiZ0WpNRqZyoeO5GwqhxOgPrG29ggtw7XEkUW0LMIR+ pawel@owczarczyk.it"

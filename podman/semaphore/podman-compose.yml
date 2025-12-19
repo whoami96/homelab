@@ -2,7 +2,7 @@ services:
   semaphore:
     ports:
       - '4000:3000'
-    image: docker.io/semaphoreui/semaphore:v2.16.37
+    image: docker.io/semaphoreui/semaphore:v2.16.47
     container_name: semaphore-core
     volumes:
       - semaphore_playbook:/tmp/semaphore/
