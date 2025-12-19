@@ -16,3 +16,5 @@ cloudflared:
     - "2000:2000"
   volumes:
     - /etc/localtime:/etc/localtime:ro
+  networks:
+    - monitoring
