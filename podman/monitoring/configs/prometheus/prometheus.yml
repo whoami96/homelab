@@ -72,3 +72,15 @@ scrape_configs:
     static_configs:
       - targets:
           - '10.0.0.5:2000'
+
+  - job_name: 'loki'
+    metrics_path: /metrics
+    scheme: http
+    static_configs:
+      - targets: ['loki:3100']
+
+  - job_name: 'promtail'
+    metrics_path: /metrics
+    scheme: http
+    static_configs:
+      - targets: ['promtail:9080']

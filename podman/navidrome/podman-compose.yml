@@ -16,6 +16,8 @@ services:
     volumes:
       - navidrome_data:/data
       - "/mnt/nexus_storage/Muzyka/:/music:ro"
+    logging:
+      driver: journald
 
 volumes:
   navidrome_data:
