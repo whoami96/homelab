@@ -3,8 +3,8 @@ services:
     image: lscr.io/linuxserver/wireguard:latest
     container_name: wireguard
     dns:
-      - 1.1.1.1
-      - 8.8.8.8
+      - ${INTERNAL_DNS}
+      - ${EXTERNAL_DNS}
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
