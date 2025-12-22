@@ -8,10 +8,20 @@ services:
       - FTLCONF_webserver_api_password=${PIHOLE_PASS}
       - FTLCONF_webserver_api_enabled=true
     volumes:
-      - /home/whoami/configs/pihole/data:/etc/pihole
-      - /home/whoami/configs/pihole/dnsmasq.d:/etc/dnsmasq.d
+      - ${PIHOLE_DATA}:/etc/pihole
+      - ${PIHOLE_DNSMASQ}:/etc/dnsmasq.d
     ports:
-      - "10.0.0.5:53:53/tcp"
-      - "10.0.0.5:53:53/udp"
+      - "${PIHOLE_TCP}"
+      - "${PIHOLE_UDP}"
       - "8070:80/tcp"
     restart: always
+
+  unbound:
+    image: docker.io/mvance/unbound:latest
+    container_name: unbound
+    cap_add:
+      - MKNOD
+      - NET_ADMIN
+    restart: always
+    volumes:
+      - ${UNBOUND_CONFIG}:/opt/unbound/etc/unbound/unbound.conf:ro
