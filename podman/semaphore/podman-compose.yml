@@ -26,6 +26,8 @@ services:
       TZ: Europe/Warsaw
     depends_on:
       - semaphore-mariadb
+    logging:
+      driver: journald
 
   semaphore-mariadb:
     image: docker.io/library/mariadb:11.8-ubi
@@ -42,6 +44,8 @@ services:
       MYSQL_PASSWORD: ${SEMAPHORE_DB_PASS}
     ports:
       - '3307:3306'
+    logging:
+      driver: journald
 
 volumes:
   semaphore-mariadb_data:

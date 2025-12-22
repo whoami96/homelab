@@ -15,6 +15,10 @@ services:
       - '--web.enable-lifecycle'
     networks:
       - monitoring
+    logging:
+      driver: journald
+      options:
+        tag: "{{.Name}}"
 
   alertmanager:
     image: docker.io/prom/alertmanager:v0.30.0
@@ -29,6 +33,10 @@ services:
       - '--storage.path=/alertmanager'
     networks:
       - monitoring
+    logging:
+      driver: journald
+      options:
+        tag: "{{.Name}}"
 
   grafana:
     image: docker.io/grafana/grafana:12.3.1
@@ -44,6 +52,43 @@ services:
       - /home/whoami/repo/homelab/podman/monitoring/configs/grafana_dashboards:/etc/grafana/provisioning/datasources
     networks:
       - monitoring
+    logging:
+      driver: journald
+      options:
+        tag: "{{.Name}}"
+
+  loki:
+    image: docker.io/grafana/loki:3.5.9
+    container_name: loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - /home/whoami/volumes/loki/loki_data:/loki
+      - /home/whoami/repo/homelab/podman/monitoring/configs/loki:/etc/loki
+    command: -config.file=/etc/loki/loki-config.yml
+    networks:
+      - monitoring
+    logging:
+      driver: journald
+      options:
+        tag: "{{.Name}}"
+
+  promtail:
+    image: docker.io/grafana/promtail:3.5.9
+    container_name: promtail
+    user: "0:0"
+    volumes:
+      - /home/whoami/repo/homelab/podman/monitoring/configs/promtail:/etc/promtail
+      - /var/log/journal:/var/log/journal:ro
+      - /run/systemd/journal:/run/systemd/journal:ro
+      - /run/user/1000/systemd/journal:/run/user/1000/systemd/journal:ro
+    command: -config.file=/etc/promtail/promtail-config.yml
+    networks:
+      - monitoring
+    logging:
+      driver: journald
+      options:
+        tag: "{{.Name}}"
 
   pwrstat-exporter:
     image: docker.io/cardif99/pwrstat-exporter:latest
@@ -56,6 +101,10 @@ services:
       - /dev/bus/usb:/dev/bus/usb
       - /dev/usb/hiddev0:/dev/usb/hiddev0
     privileged: true
+    logging:
+      driver: journald
+      options:
+        tag: "{{.Name}}"
 
   nextcloud-exporter:
     image: docker.io/xperimental/nextcloud-exporter:0.9.0
@@ -68,6 +117,10 @@ services:
       - "9205:9205"
     networks:
       - monitoring
+    logging:
+      driver: journald
+      options:
+        tag: "{{.Name}}"
 
   podman-exporter:
     image: quay.io/navidys/prometheus-podman-exporter
@@ -83,6 +136,24 @@ services:
     user: root
     security_opt:
       - label=disable
+    logging:
+      driver: journald
+      options:
+        tag: "{{.Name}}"
+
+  speedtest-exporter:
+    image: docker.io/miguelndecarvalho/speedtest-exporter:latest
+    container_name: speedtest-exporter
+    ports:
+      - '9798:9798'
+    networks:
+      - monitoring
+    environment:
+      - SPEEDTEST_PORT=9798
+    logging:
+      driver: journald
+      options:
+        tag: "{{.Name}}"
 
 networks:
   monitoring:

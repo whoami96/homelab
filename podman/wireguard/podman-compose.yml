@@ -1,0 +1,40 @@
+services:
+  wireguard:
+    image: lscr.io/linuxserver/wireguard:latest
+    container_name: wireguard
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      - PUID=${MY_PUID}
+      - PGID=${MY_PGID}
+      - TZ=Europe/Warsaw
+      - SERVERURL=${VPN_DOMAIN}
+      - SERVERPORT=${VPN_PORT}
+      - PEERS=${PEERS}
+      - PEERDNS=${PEERDNS}
+      - INTERNAL_NM=${INTERNAL_NM}
+      - ALLOWEDIPS=${ALLOWEDIPS}
+      - MTU=1280
+    ports:
+      - "${VPN_PORT}:${VPN_PORT}/udp"
+      - "9586:9586"
+    volumes:
+      - ${CONFIG_PATH}:/config
+      - /lib/modules:/lib/modules:ro
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+    restart: always
+
+  wireguard-exporter:
+    image: docker.io/mindflavor/prometheus-wireguard-exporter:latest
+    container_name: wireguard-exporter
+    cap_add:
+      - NET_ADMIN
+    privileged: true
+    network_mode: "container:wireguard"
+    command: ["--prepend_sudo", "false"]
+    restart: always

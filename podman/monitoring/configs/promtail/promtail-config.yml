@@ -1,0 +1,34 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+positions:
+  filename: /tmp/positions.yaml
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+scrape_configs:
+# root
+  - job_name: journal
+    journal:
+      max_age: 12h
+      path: /var/log/journal
+      labels:
+        job: systemd-journal
+        host: nexus
+    relabel_configs:
+      - source_labels: ['__journal_container_name']
+        target_label: 'container'
+      - source_labels: ['__journal__systemd_unit']
+        target_label: 'unit'
+
+#rootless
+  - job_name: journal-rootless
+    journal:
+      max_age: 12h
+      path: /run/user/1000/systemd/journal
+      labels:
+        job: systemd-journal-user
+        host: nexus
+        user: "1000"
+    relabel_configs:
+      - source_labels: ['__journal_container_name']
+        target_label: 'container'
