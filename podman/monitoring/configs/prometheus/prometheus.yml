@@ -66,13 +66,6 @@ scrape_configs:
       - targets:
           - "speedtest-exporter:9798"
 
-  - job_name: 'cloudflared-metrics'
-    metrics_path: /metrics
-    scheme: http
-    static_configs:
-      - targets:
-          - '10.0.0.5:2000'
-
   - job_name: 'loki'
     metrics_path: /metrics
     scheme: http
@@ -84,3 +77,9 @@ scrape_configs:
     scheme: http
     static_configs:
       - targets: ['promtail:9080']
+
+  - job_name: 'wireguard'
+    metrics_path: /metrics
+    scheme: http
+    static_configs:
+      - targets: ['10.0.0.5:9586']
