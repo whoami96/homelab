@@ -7,12 +7,17 @@ services:
       PGID: ${PGID}
       TZ: Europe/Warsaw
     volumes:
-      - /home/whoami/repo/homelab/podman/transmission/config:/config
+      - /home/whoami/configs/transmission/config:/config
       - /mnt/nexus_storage/Downloaded/:/downloads
-      - /home/whoami/repo/homelab/podman/transmission/watch:/watch
+      - /home/whoami/configs/transmission/watch:/watch
     ports:
       - 9091:9091
       - 51413:51413/tcp
       - 51413:51413/udp
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9091/transmission/web/ || exit 1"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
     logging:
       driver: journald

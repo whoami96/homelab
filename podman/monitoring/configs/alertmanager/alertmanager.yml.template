@@ -12,7 +12,7 @@ route:
 receivers:
   - name: 'discord-notifications'
     discord_configs:
-      - webhook_url: "https://discord.com/api/webhooks/1455605871156396195/CruD0enFh6w-9LlywI2N4rI7A1MuvO-rA6W1zyIpJDH7ZuqiwpO7rg_MZ7vQZ0AerKA5"
+      - webhook_url: "${DISCORD_WEBHOOK_URL}"
         send_resolved: true
         title: |
           {{ if eq .Status "firing" }}🔥{{ else }}✅{{ end }} [{{ .Status | toUpper }}] {{ .GroupLabels.alertname }}

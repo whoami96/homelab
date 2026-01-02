@@ -6,10 +6,11 @@ global:
 alerting:
   alertmanagers:
     - static_configs:
-        - targets: ['alertmanager:9093']
-      scheme: http
-      timeout: 10s
-      api_version: v2
+        - targets:
+          - "alertmanager:9093"
+
+rule_files:
+  - "rules.yml"
 
 scrape_configs:
   - job_name: node-exporter
@@ -34,7 +35,7 @@ scrape_configs:
     scheme: http
     static_configs:
       - targets:
-          - 'alertmanager:9093'
+          - "alertmanager:9093"
 
   - job_name: "pwrstat-exporter"
     metrics_path: /metrics
@@ -51,11 +52,21 @@ scrape_configs:
           - "nextcloud-exporter:9205"
 
   - job_name: "podman-exporter"
+    scrape_interval: 30s
+    scrape_timeout: 25s
     metrics_path: /metrics
     scheme: http
     static_configs:
       - targets:
-          - "podman-exporter:9882"
+          - "podman-exporter-root:9882"
+          - "podman-exporter-user:9882"
+
+  - job_name: 'smartctl'
+    metrics_path: /metrics
+    scheme: http
+    static_configs:
+      - targets:
+        - "10.0.0.5:9633"
 
   - job_name: 'speedtest-exporter'
     metrics_path: /metrics
@@ -70,16 +81,19 @@ scrape_configs:
     metrics_path: /metrics
     scheme: http
     static_configs:
-      - targets: ['loki:3100']
+      - targets:
+          - "loki:3100"
 
   - job_name: 'promtail'
     metrics_path: /metrics
     scheme: http
     static_configs:
-      - targets: ['promtail:9080']
+      - targets:
+          - "promtail:9080"
 
   - job_name: 'wireguard'
     metrics_path: /metrics
     scheme: http
     static_configs:
-      - targets: ['10.0.0.5:9586']
+      - targets:
+          - "10.0.0.5:9586"

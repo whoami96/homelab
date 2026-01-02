@@ -1,0 +1,246 @@
+groups:
+  # Groups: Power Alerts
+  - name: power_alerts
+    rules:
+      - alert: UPSOnBattery
+        expr: ups_in_voltage < 100
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "🔌 Brak zasilania w Piwnicy!"
+          description: |
+            **Status:** UPS przeszedł na baterię.
+            **Wejście:** {{ $value }}V (spadek poniżej 100V).
+            **Pozostały czas:** {{ with printf "ups_remaining_runtime" | query }}{{ . | first | value | humanizeDuration }}{{ end }}.
+            **Obciążenie:** {{ with printf "ups_load" | query }}{{ . | first | value }}{{ end }}%.
+
+      - alert: UPSLowBattery
+        expr: ups_battery_capacity < 30
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "🪫 Krytycznie mało energii w UPS!"
+          description: "Poziom naładowania spadł do **{{ $value }}%**."
+
+      - alert: UPSHighLoad
+        expr: ups_load > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "⚠️ Przeciążenie UPS-a!"
+          description: "Aktualne obciążenie wynosi **{{ $value }}%**."
+
+      - alert: UPSLowRuntime
+        expr: ups_remaining_runtime < 10
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "⏳ Czas ucieka!"
+          description: "Pozostało mniej niż **10 minut** pracy na baterii (aktualnie: {{ $value | humanizeDuration }})."
+
+  # Groups: Service Status
+  - name: services_status
+    rules:
+      - alert: ContainerDown
+        expr: podman_container_state{name!="speedtest-exporter"} != 2
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "🚨 Kontener {{ $labels.name }} padł!"
+          description: |
+            **Status:** 💀 **DOWN / CRITICAL**
+            **Serwis:** `{{ $labels.name }}`
+            **Obraz:** `{{ $labels.image }}`
+            **Runner:** `{{ $labels.instance }}`
+            **Kod stanu:** `{{ $value }}` (Oczekiwano 2)
+
+      - alert: ContainerHealthIssue
+        expr: podman_container_health != 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "🏥 Problem z Healthcheckiem: {{ $labels.name }}"
+          description: |
+            **Status:** ⚠️ **CHECK REQUIRED**
+            **Serwis:** `{{ $labels.name }}`
+            **Kod metryki:** `{{ $value }}`
+
+            **Legenda kodów:**
+            - `1` / `2` : 💔 **UNHEALTHY** (Błąd logiczny aplikacji)
+            - `-1` : 🔍 **BRAK TESTU** (Healthcheck został usunięty lub nie istnieje)
+
+            **Szczegóły:**
+            Host: `nexus`
+            Obraz: `{{ $labels.image }}`
+
+      - alert: SystemdServiceFailed
+        expr: node_systemd_unit_state{state="failed"} == 1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "⚙️ Awaria serwisu systemowego!"
+          description: "Serwis {{ $labels.name }} na hoście {{ $labels.instance }} przeszedł w stan FAILED."
+
+  # Groups: Storage Capacity
+  - name: storage_capacity
+    rules:
+      - alert: HostDiskSpaceLow
+        expr: (node_filesystem_avail_bytes{fstype!~"tmpfs|vfat|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|vfat|overlay"}) * 100 < 15
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "💾 Kończy się miejsce: {{ $labels.mountpoint }}"
+          description: "Na dysku **{{ $labels.mountpoint }}** zostało mniej niż 15% miejsca (aktualnie: {{ printf \"%.2f\" $value }}%)."
+
+      - alert: HostDiskSpaceCritical
+        expr: (node_filesystem_avail_bytes{fstype!~"tmpfs|vfat|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|vfat|overlay"}) * 100 < 5
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "🚨 KRYTYCZNIE mało miejsca: {{ $labels.mountpoint }}"
+          description: "Na dysku **{{ $labels.mountpoint }}** zostało tylko {{ printf \"%.2f\" $value }}% wolnego miejsca!"
+
+      - alert: HostInodesLow
+        expr: node_filesystem_files_free{fstype!~"tmpfs|vfat|overlay"} / node_filesystem_files{fstype!~"tmpfs|vfat|overlay"} * 100 < 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "📂 Kończą się inody na {{ $labels.mountpoint }}"
+          description: "Zostało mniej niż 10% wolnych inodów (aktualnie: {{ printf \"%.2f\" $value }}%)."
+
+      - alert: HostDiskWillFillIn24Hours
+        expr: predict_linear(node_filesystem_free_bytes{fstype!~"tmpfs|vfat|overlay"}[1h], 86400) < 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "⏳ Dysk {{ $labels.mountpoint }} zapełni się w ciągu 24h"
+          description: "Na podstawie tempa zapisu z ostatniej godziny, dysk zapełni się całkowicie w ciągu doby."
+
+  # Groups: Disk Hardware Health
+  - name: disk_hardware_health
+    rules:
+      - alert: DiskSmartStatusBad
+        expr: smartctl_device_status == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "🚨 Dysk zgłasza awarię: {{ $labels.device }}"
+          description: |
+            **Dysk:** `{{ $labels.device }}` ({{ $labels.model }})
+            **Host:** {{ $labels.instance }}
+            **Problem:** Status SMART zmienił się na FAIL. Ryzyko utraty danych!
+
+      - alert: DiskSelfTestFailed
+        expr: smartctl_device_test_status != 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "🚨 Autotest dysku nie powiódł się!"
+          description: "Ostatni zaplanowany test SMART na {{ $labels.device }} zakończył się błędem."
+
+      - alert: DiskTemperatureHigh
+        expr: smartctl_device_temperature > 50
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "🔥 Dysk się przegrzewa: {{ $labels.device }}"
+          description: "Temperatura dysku `{{ $labels.device }}` przekroczyła 50°C (aktualnie: {{ $value }}°C)."
+
+      - alert: DiskReallocatedSectorsIncreasing
+        expr: increase(smartctl_device_attribute_value{attribute_name="Reallocated_Sector_Ct"}[1h]) > 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "⚠️ Rosnąca liczba bad sektorów"
+          description: "Dysk `{{ $labels.device }}` zaczął relokować sektory. To wczesny sygnał degradacji."
+
+  # Groups: Host Resource Usage
+  - name: host_resources
+    rules:
+      - alert: HostHighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "🧠 Wysokie użycie RAM"
+          description: "Użycie pamięci RAM na host {{ $labels.instance }} wynosi {{ printf \"%.2f\" $value }}%."
+
+      - alert: HostHighLoad
+        expr: node_load1 > 8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "🔥 Wysoki Load serwera"
+          description: "Load Average (1m) wynosi {{ $value }}. Serwer może działać ociężale."
+
+      - alert: HostHighCpuLoad
+        expr: |
+          100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 90
+        for: 15m
+        labels:
+          severity: warning
+          host: nexus
+        annotations:
+          summary: "🔥 Wysokie obciążenie CPU: {{ $labels.host }}"
+          description: |
+            **Status:** ⚠️ **HIGH LOAD**
+            **Obciążenie:** `{{ $value | printf "%.2f" }}%`
+            **Czas trwania:** > 15 minut
+
+            **Szczegóły:**
+            Procesor J1900 na nexusie jest przeciążony. Sprawdź `top` lub `podman stats`, aby namierzyć winowajcę.
+
+      - alert: HostRecentlyRestarted
+        expr: node_time_seconds - node_boot_time_seconds < 600
+        labels:
+          severity: information
+        annotations:
+          summary: "⚙️ Serwer nexus niedawno wstał"
+          description: "System został uruchomiony ponownie {{ printf \"%.0f\" $value }} sekund temu."
+
+  # Groups: Network Performance
+  - name: network_performance
+    rules:
+      - alert: InternetDownloadSpeedLow
+        expr: max_over_time(speedtest_download_bits_per_second[1h]) < 500000000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "🌐 Słaby Download w Piwnicy"
+          description: "Ostatni test wykazał prędkość {{ $value | humanize1024 }}bps."
+
+      - alert: InternetLatencyHigh
+        expr: max_over_time(speedtest_ping_latency_milliseconds[1h]) > 50
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "📶 Wysoki Ping (Lag)"
+          description: "Opóźnienie łącza wynosi {{ $value }}ms."
+
+      - alert: SpeedtestExporterDown
+        expr: up{job="speedtest-exporter"} == 0
+        for: 1h
+        labels:
+          severity: critical
+        annotations:
+          summary: "🚨 Speedtest Exporter nie działa"
+          description: "Prometheus nie może pobrać metryk ze speedtest-exporter. Sprawdź timeout."

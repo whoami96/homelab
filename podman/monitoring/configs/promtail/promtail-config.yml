@@ -1,12 +1,14 @@
 server:
   http_listen_port: 9080
   grpc_listen_port: 0
+
 positions:
   filename: /tmp/positions.yaml
+
 clients:
   - url: http://loki:3100/loki/api/v1/push
+
 scrape_configs:
-# root
   - job_name: journal
     journal:
       max_age: 12h
@@ -14,13 +16,26 @@ scrape_configs:
       labels:
         job: systemd-journal
         host: nexus
+
+    pipeline_stages:
+      - regex:
+          expression: '(?i)level=(?P<level_label>\w+)|(?P<word_level>DEBUG|INFO|WARN|ERROR|FATAL|PANIC|CRITICAL)'
+      - template:
+          source: level
+          template: '{{ if .level_label }}{{ .level_label }}{{ else if .word_level }}{{ .word_level }}{{ else }}unknown{{ end }}'
+      - labels:
+          level:
+
     relabel_configs:
-      - source_labels: ['__journal_container_name']
-        target_label: 'container'
       - source_labels: ['__journal__systemd_unit']
         target_label: 'unit'
+      - source_labels: ['__journal_container_name']
+        target_label: 'container'
+      - source_labels: ['container', '__journal_syslog_identifier']
+        separator: ';'
+        regex: ';(.*)'
+        target_label: 'container'
 
-#rootless
   - job_name: journal-rootless
     journal:
       max_age: 12h
@@ -29,6 +44,20 @@ scrape_configs:
         job: systemd-journal-user
         host: nexus
         user: "1000"
+
+    pipeline_stages:
+      - regex:
+          expression: '(?i)level=(?P<level_label>\w+)|(?P<word_level>DEBUG|INFO|WARN|ERROR|FATAL|PANIC|CRITICAL)'
+      - template:
+          source: level
+          template: '{{ if .level_label }}{{ .level_label }}{{ else if .word_level }}{{ .word_level }}{{ else }}unknown{{ end }}'
+      - labels:
+          level:
+
     relabel_configs:
       - source_labels: ['__journal_container_name']
+        target_label: 'container'
+      - source_labels: ['container', '__journal_syslog_identifier']
+        separator: ';'
+        regex: ';(.*)'
         target_label: 'container'

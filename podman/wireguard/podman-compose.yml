@@ -22,19 +22,38 @@ services:
     ports:
       - "${VPN_PORT}:${VPN_PORT}/udp"
       - "9586:9586"
+    healthcheck:
+      test: ["CMD", "wg", "show", "wg0"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     volumes:
       - ${CONFIG_PATH}:/config
       - /lib/modules:/lib/modules:ro
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
     restart: always
+    logging:
+      driver: journald
+      options:
+        tag: "{{.Name}}"
 
   wireguard-exporter:
     image: docker.io/mindflavor/prometheus-wireguard-exporter:latest
     container_name: wireguard-exporter
     cap_add:
       - NET_ADMIN
+    healthcheck:
+      test: ["CMD-SHELL", "grep -q ':2572 ' /proc/net/tcp || exit 1"]
+      interval: 1m
+      timeout: 5s
+      retries: 3
     privileged: true
     network_mode: "container:wireguard"
     command: ["--prepend_sudo", "false"]
     restart: always
+    logging:
+      driver: journald
+      options:
+        tag: "{{.Name}}"
