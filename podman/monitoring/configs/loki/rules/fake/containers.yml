@@ -1,0 +1,36 @@
+groups:
+  - name: container_app_alerts
+    rules:
+      - alert: ContainerFrequentRestarts
+        expr: |
+          sum by (unit, container) (
+            count_over_time({job=~"systemd-journal.*"}
+              |= "Started "
+              |~ "(?i)service|container"
+              != "recalculate owned streams job" [30m]
+            )
+          ) > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "🔄 Wykryto częste restarty: {{ if $labels.container }}{{ $labels.container }}{{ else }}{{ $labels.unit }}{{ end }}"
+          description: "Usługa na nexusie zrestartowała się {{ $value }} razy w ciągu ostatnich 30 minut. Sprawdź przyczynę w `journalctl -xe`"
+
+      - alert: GlobalHighErrorRate
+        expr: |
+          sum by (unit, container) (
+            count_over_time(
+              # Wykluczamy logi systemd-user, które nie są realnymi kontenerami
+              {job=~"systemd-journal.*", unit!~"user@.*\\.service"}
+              |= "Started "
+              |~ "(?i)service|container"
+              != "recalculate owned streams job" [30m]
+            )
+          ) > 5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "⚠️ Wysoka liczba błędów w logach"
+          description: "Wykryto {{ $value }} logów typu ERROR/CRITICAL w ciągu 10 minut. Sprawdź Grafana Explore!"

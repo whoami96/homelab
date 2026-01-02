@@ -14,14 +14,34 @@ services:
       - "${PIHOLE_TCP}"
       - "${PIHOLE_UDP}"
       - "8070:80/tcp"
+    healthcheck:
+      test: ["CMD", "pihole", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     restart: always
+    logging:
+      driver: journald
+      options:
+        tag: "{{.Name}}"
 
   unbound:
     image: docker.io/mvance/unbound:latest
     container_name: unbound
+    healthcheck:
+      test: ["CMD", "unbound-host", "-C", "/opt/unbound/etc/unbound/unbound.conf", "-4", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     cap_add:
       - MKNOD
       - NET_ADMIN
     restart: always
     volumes:
       - ${UNBOUND_CONFIG}:/opt/unbound/etc/unbound/unbound.conf:ro
+    logging:
+      driver: journald
+      options:
+        tag: "{{.Name}}"

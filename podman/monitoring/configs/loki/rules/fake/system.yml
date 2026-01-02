@@ -1,0 +1,46 @@
+groups:
+  - name: system_health_alerts
+    rules:
+      - alert: KernelOOMKill
+        expr: |
+          count_over_time(
+            {job="systemd-journal", _TRANSPORT="kernel", level=~"(?i)error|critical|panic|fatal"}
+            |~ "(?i)Out of memory|oom-kill"
+            [5m]
+          ) > 0
+        labels:
+          severity: critical
+        annotations:
+          summary: "🚨 Kernel zabił proces (OOM)!"
+          description: "Brak pamięci RAM na nexus. Jądro systemu ubiło proces. Sprawdź obciążenie!"
+
+      - alert: DiskIOErrors
+        expr: |
+          count_over_time(
+            {job="systemd-journal", _TRANSPORT="kernel", level=~"(?i)error|critical|panic|fatal"}
+            |~ "(?i)I/O error|filesystem error|read-only"
+            [5m]
+          ) > 0
+        labels:
+          severity: critical
+        annotations:
+          summary: "🚨 BŁĄD DYSKU na nexus!"
+          description: "Wykryto błędy wejścia/wyjścia lub systemu plików o statusie ERROR w logach jądra."
+
+      - alert: SystemdServiceCrashed
+        expr: |
+          sum by (unit) (
+            count_over_time(
+              {job="systemd-journal", level=~"(?i)error|critical|panic|fatal"}
+              |= "failed with result"
+              | unit !~ "libpod.*"     # Ignoruj jednostki zaczynające się od libpod
+              | unit !~ ".*\\.scope"   # Ignoruj wszystkie ulotne zakresy (.scope)
+              [5m]
+            )
+          ) > 0
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "⚙️ Usługa {{ $labels.unit }} padła na nexus!"
+          description: "Systemd zgłosił awarię usługi **{{ $labels.unit }}** z poziomem ERROR. Sprawdź `systemctl status {{ $labels.unit }}`."

@@ -8,10 +8,22 @@ common:
   storage:
     filesystem:
       chunks_directory: /loki/chunks
-      rules_directory: /loki/rules
+      rules_directory: /etc/loki/rules
   replication_factor: 1
   ring:
     instance_addr: 127.0.0.1
+    kvstore:
+      store: inmemory
+
+ruler:
+  storage:
+    type: local
+    local:
+      directory: /etc/loki/rules
+  rule_path: /loki/rules-temp
+  alertmanager_url: http://alertmanager:9093
+  enable_api: true
+  ring:
     kvstore:
       store: inmemory
 

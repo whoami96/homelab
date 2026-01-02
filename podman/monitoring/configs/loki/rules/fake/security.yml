@@ -1,0 +1,22 @@
+groups:
+  - name: ssh_security_alerts
+    rules:
+      - alert: SSHBruteForceAttempt
+        expr: |
+          count_over_time({job="systemd-journal", unit="ssh.service"} |= "Failed password" [15m]) > 10
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "🛡️ Atak Brute Force na SSH!"
+          description: "Wykryto {{ $value }} nieudanych logowań do SSH w ciągu 15 minut na {{ $labels.instance }}."
+
+      - alert: SSHInvalidUserAttempt
+        expr: |
+          count_over_time({job="systemd-journal", unit="ssh.service"} |= "invalid user" [15m]) > 5
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: "🤖 Bot skanuje użytkowników SSH"
+          description: "Wykryto {{ $value }} prób logowania na nieistniejące konta w usłudze SSH na nexus."
