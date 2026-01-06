@@ -13,3 +13,25 @@
         upgrade: safe
       register: upgrade_result
       ignore_errors: true
+
+    - name: Send notification to Discord
+      ansible.builtin.uri:
+        url: "{{ discord_webhook_url }}"
+        method: POST
+        body_format: json
+        body:
+          embeds:
+            - title: "📦 Status aktualizacji systemu: {{ inventory_hostname }}"
+              description: |
+                {{ "✅ System został pomyślnie zaktualizowany." if upgrade_result.changed else "ℹ️ Brak nowych pakietów do aktualizacji." }}
+              color: "{{ 3066993 if upgrade_result.changed else 8421504 }}"
+              fields:
+                - name: "Host"
+                  value: "{{ ansible_host | default(inventory_hostname) }}"
+                  inline: true
+                - name: "Zmieniono"
+                  value: "{{ 'Tak' if upgrade_result.changed else 'Nie' }}"
+                  inline: true
+              footer:
+                text: "Automatyzacja Ansible via Semaphore | {{ ansible_date_time.iso8601 }}"
+      when: discord_webhook_url is defined
