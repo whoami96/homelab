@@ -34,4 +34,5 @@
                   inline: true
               footer:
                 text: "Automatyzacja Ansible via Semaphore | {{ ansible_date_time.iso8601 }}"
+        status_code: [200, 204]
       when: discord_webhook_url is defined
