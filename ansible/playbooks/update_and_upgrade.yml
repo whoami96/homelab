@@ -19,6 +19,7 @@
         url: "{{ discord_webhook_url }}"
         method: POST
         body_format: json
+        status_code: [200, 204]
         body:
           embeds:
             - title: "📦 Status aktualizacji systemu: {{ inventory_hostname }}"
@@ -34,5 +35,4 @@
                   inline: true
               footer:
                 text: "Automatyzacja Ansible via Semaphore | {{ ansible_date_time.iso8601 }}"
-        status_code: [200, 204]
       when: discord_webhook_url is defined
