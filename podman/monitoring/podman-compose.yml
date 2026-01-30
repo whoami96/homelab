@@ -164,22 +164,27 @@ services:
 
   podman-exporter-root:
     image: quay.io/navidys/prometheus-podman-exporter
-    container_name: podman-exporter
+    container_name: podman-exporter-root
     networks:
       - monitoring
+    network_mode: host
+    pid: host
+    privileged: true
     ports:
       - '9882:9882'
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9882/metrics"]
+      test: ["CMD-SHELL", "nc -z localhost 9882 || exit 1"]
       interval: 1m
-      timeout: 10s
+      timeout: 5s
       retries: 3
     environment:
       - CONTAINER_HOST=unix:///run/podman/podman.sock
     command:
-      - '--collector.enhance-metrics'
+      - '--collector.enable-all'
+      - '--web.listen-address=:9882'
     volumes:
       - /run/podman/podman.sock:/run/podman/podman.sock
+      - /proc:/host/proc:ro
     user: root
     security_opt:
       - label=disable
@@ -192,19 +197,26 @@ services:
     image: quay.io/navidys/prometheus-podman-exporter
     container_name: podman-exporter-user
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9882/metrics"]
-      interval: 1m
-      timeout: 10s
-      retries: 3
+      test: ["CMD-SHELL", "nc -z localhost 9883 || exit 1"]
+      interval: 2m
+      timeout: 20s
+      retries: 5
     networks:
       - monitoring
+    ports:
+      - '9983:9882'
+    network_mode: host
+    privilege: true
+    pid: host
     environment:
-      - CONTAINER_HOST=unix:///run/podman/podman.sock
+      - CONTAINER_HOST=unix:///run/user/1000/podman/podman.sock
+      - HOME=/tmp
     command:
-      - '--collector.enhance-metrics'
+      - '--collector.enable-all'
+      - '--web.listen-address=:9883'
     volumes:
-      - /run/user/1000/podman/podman.sock:/run/podman/podman.sock:ro
-    user: root
+      - /run/user/1000/podman/podman.sock:/run/user/1000/podman/podman.sock:ro
+    user: "1000:1000"
     security_opt:
       - label=disable
     logging:

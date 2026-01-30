@@ -58,8 +58,8 @@ scrape_configs:
     scheme: http
     static_configs:
       - targets:
-          - "podman-exporter-root:9882"
-          - "podman-exporter-user:9882"
+          - '10.0.0.5:9882'
+          - '10.0.0.5:9883'
 
   - job_name: 'smartctl'
     metrics_path: /metrics
