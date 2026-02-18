@@ -1,6 +1,6 @@
 services:
   prometheus:
-    image: docker.io/prom/prometheus:v3.8.1
+    image: docker.io/prom/prometheus:v3.9.1
     container_name: prometheus
     ports:
       - '9080:9090'
@@ -27,7 +27,7 @@ services:
         tag: "{{.Name}}"
 
   alertmanager:
-    image: docker.io/prom/alertmanager:v0.30.0
+    image: docker.io/prom/alertmanager:v0.31.1
     container_name: alertmanager
     ports:
       - '9093:9093'
@@ -50,7 +50,7 @@ services:
         tag: "{{.Name}}"
 
   grafana:
-    image: docker.io/grafana/grafana:12.3.1
+    image: docker.io/grafana/grafana:12.3.3
     container_name: grafana
     ports:
       - '3000:3000'
@@ -75,7 +75,7 @@ services:
         tag: "{{.Name}}"
 
   loki:
-    image: docker.io/grafana/loki:3.5.9
+    image: docker.io/grafana/loki:3.5.10
     container_name: loki
     ports:
       - "3100:3100"
@@ -97,7 +97,7 @@ services:
         tag: "{{.Name}}"
 
   promtail:
-    image: docker.io/grafana/promtail:3.5.9
+    image: docker.io/grafana/promtail:3.5.10
     container_name: promtail
     user: "0:0"
     healthcheck:
