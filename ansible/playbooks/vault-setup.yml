@@ -1,0 +1,78 @@
+---
+- name: HashiCorp Vault Setup on LXC
+  hosts: vault
+  become: yes
+  vars:
+    vault_api_addr: "http://{{ ansible_host }}:8200"
+
+  tasks:
+    - name: Ensure dependencies are installed
+      apt:
+        name:
+          - gpg
+          - curl
+          - ca-certificates
+        state: present
+
+    - name: Add HashiCorp GPG key
+      shell: |
+        curl -fsSL https://apt.releases.hashicorp.com/gpg | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+      args:
+        creates: /usr/share/keyrings/hashicorp-archive-keyring.gpg
+
+    - name: Add HashiCorp Repository
+      copy:
+        dest: /etc/apt/sources.list.d/hashicorp.list
+        content: "deb [arch=amd64 signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main"
+
+    - name: Update apt cache and install Vault
+      apt:
+        name: vault
+        update_cache: yes
+        state: present
+
+    - name: Create Vault data directory
+      file:
+        path: /opt/vault/data
+        state: directory
+        owner: vault
+        group: vault
+        mode: '0750'
+
+    - name: Configure Vault (HCL)
+      copy:
+        dest: /etc/vault.d/vault.hcl
+        owner: vault
+        group: vault
+        mode: '0640'
+        content: |
+          storage "raft" {
+            path    = "/opt/vault/data"
+            node_id = "{{ inventory_hostname }}"
+          }
+
+          listener "tcp" {
+            address     = "0.0.0.0:8200"
+            tls_disable = "true"
+          }
+
+          # Kluczowe dla LXC Unprivileged
+          disable_mlock = true
+
+          api_addr = "{{ vault_api_addr }}"
+          cluster_addr = "http://{{ ansible_host }}:8201"
+          ui = true
+
+    - name: Ensure Vault is started and enabled
+      service:
+        name: vault
+        state: started
+        enabled: yes
+
+    - name: Configure UFW for Vault
+      ufw:
+        rule: allow
+        proto: tcp
+        port: '8200'
+        src: '10.0.0.0/24'
+        comment: "Vault API and UI"

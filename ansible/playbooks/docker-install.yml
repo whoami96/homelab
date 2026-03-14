@@ -1,37 +1,69 @@
 ---
-- hosts: docker
-  become: true
+- name: Install Docker Engine on Ubuntu/Debian
+  hosts: docker_hosts
+  become: yes
+  vars:
+    docker_user: "{{ my_user }}"
+
   tasks:
-    - name: Install required packages
-      ansible.builtin.apt:
+    - name: Ensure dependencies are installed
+      apt:
         name:
-          - apt-transport-https
           - ca-certificates
           - curl
           - gnupg
-          - lsb-release
         state: present
-        update_cache: true
+        update_cache: yes
+
+    - name: Create directory for Docker GPG key
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
 
     - name: Add Docker GPG key
-      ansible.builtin.apt_key:
-        url: https://download.docker.com/linux/ubuntu/gpg
-        state: present
+      shell: |
+        curl -fsSL https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+      args:
+        creates: /etc/apt/keyrings/docker.gpg
 
-    - name: Add Docker repository
-      ansible.builtin.apt_repository:
-        repo: "deb [arch=amd64] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
+    - name: Add Docker Repository
+      apt_repository:
+        repo: >
+          deb [arch={{ 'amd64' if ansible_architecture == 'x86_64' else 'arm64' }} signed-by=/etc/apt/keyrings/docker.gpg] 
+          https://download.docker.com/linux/{{ ansible_distribution | lower }} 
+          {{ ansible_distribution_release }} stable
         state: present
-        update_cache: true
+        filename: docker
 
-    - name: Install Docker
-      ansible.builtin.apt:
-        name: docker-ce
+    - name: Install Docker Engine and Compose plugin
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
         state: present
-        update_cache: true
+        update_cache: yes
 
-    - name: Ensure Docker service is enabled and running
-      ansible.builtin.systemd:
+    - name: Ensure Docker service is started and enabled
+      service:
         name: docker
-        enabled: true
         state: started
+        enabled: yes
+
+    - name: Add user to docker group
+      user:
+        name: "{{ docker_user }}"
+        groups: docker
+        append: yes
+
+    - name: Test Docker installation
+      command: docker --version
+      register: docker_version
+      changed_when: false
+
+    - name: Print Docker version
+      debug:
+        msg: "Zainstalowano Docker w wersji: {{ docker_version.stdout }}"

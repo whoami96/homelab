@@ -11,3 +11,4 @@ backend.tf
 bandwidth-groups.json
 settings.json
 .ansible
+.ansible_vault_pass

@@ -1,0 +1,102 @@
+---
+- name: MariaDB Server Setup with Service Databases (Vault & AppRole)
+  hosts: mariadb
+  become: yes
+  vars_files:
+    - ../vars/vault_creds.yml
+
+  vars:
+    mariadb_root_password: "{{ lookup('community.hashi_vault.hashi_vault', 
+                               'auth_method=approle 
+                                role_id=' + vault_role_id + 
+                               ' secret_id=' + vault_secret_id + 
+                               ' url=http://10.0.0.20:8200 
+                                secret=secrets/data/mariadb:root_password') }}"
+    mariadb_bind_address: "0.0.0.0"
+    services_to_setup:
+      - { name: 'zabbix', secret_key: 'zabbix_password' }
+      - { name: 'semaphore', secret_key: 'semaphore_password' }
+      - { name: 'nextcloud', secret_key: 'nextcloud_password' }
+      - { name: 'gitea', secret_key: 'gitea_password' }
+
+  tasks:
+    - name: Install MariaDB server and Python dependencies
+      apt:
+        name:
+          - mariadb-server
+          - python3-pymysql
+        state: present
+
+    - name: Ensure MariaDB is started and enabled
+      service:
+        name: mariadb
+        state: started
+        enabled: yes
+
+    - name: Check if root password is already set
+      command: mysqladmin -u root -p'{{ mariadb_root_password }}' ping
+      register: root_password_check
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Set MariaDB root password (manual command)
+      command: >
+        mariadb -u root -e "SET PASSWORD FOR 'root'@'localhost' = PASSWORD('{{ mariadb_root_password }}'); FLUSH PRIVILEGES;"
+      when: root_password_check.rc != 0
+
+    - name: Remove anonymous MariaDB users
+      mysql_user:
+        name: ""
+        host_all: yes
+        state: absent
+        login_user: root
+        login_password: "{{ mariadb_root_password }}"
+
+    - name: Remove MariaDB test database
+      mysql_db:
+        name: test
+        state: absent
+        login_user: root
+        login_password: "{{ mariadb_root_password }}"
+
+    - name: Allow MariaDB to listen on all interfaces
+      lineinfile:
+        path: /etc/mysql/mariadb.conf.d/50-server.cnf
+        regexp: '^bind-address'
+        line: "bind-address = {{ mariadb_bind_address }}"
+      notify: Restart MariaDB
+
+    - name: Configure UFW to allow MySQL traffic
+      ufw:
+        rule: allow
+        proto: tcp
+        port: '3306'
+        src: '10.0.0.0/24'
+
+    - name: Create service databases
+      mysql_db:
+        name: "{{ item.name }}"
+        state: present
+        login_user: root
+        login_password: "{{ mariadb_root_password }}"
+      loop: "{{ services_to_setup }}"
+
+    - name: Create database users for services
+      mysql_user:
+        name: "{{ item.name }}"
+        password: "{{ lookup('community.hashi_vault.hashi_vault', 
+                      'auth_method=approle role_id=' + vault_role_id + ' secret_id=' + vault_secret_id + 
+                      ' url=http://10.0.0.20:8200 
+                       secret=secrets/data/mariadb/services:' + item.secret_key) }}"
+        host: "%"
+        priv: "{{ item.name }}.*:ALL"
+        state: present
+        login_user: root
+        login_password: "{{ mariadb_root_password }}"
+      loop: "{{ services_to_setup }}"
+
+  handlers:
+    - name: Restart MariaDB
+      service:
+        name: mariadb
+        state: restarted

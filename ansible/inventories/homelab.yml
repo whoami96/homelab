@@ -1,8 +1,36 @@
 all:
   children:
-    homelab:
+    infrastructure:
       hosts:
-        nexus:
-          ansible_host: 10.0.0.5
-          ansible_user: ansible
-          ansible_ssh_private_key_file: ~/.ssh/keys/homelab/ansible
+        omv:
+          ansible_host: 10.0.0.20
+        pbs:
+          ansible_host: 10.0.0.19
+        vpn:
+          ansible_host: 10.0.0.14
+        vault:
+          ansible_host: 10.0.0.20
+    databases:
+      hosts:
+        mariadb:
+          ansible_host: 10.0.0.15
+    applications:
+      hosts:
+        nextcloud:
+          ansible_host: 10.0.0.13
+        gitea:
+          ansible_host: 10.0.0.18
+        semaphore:
+          ansible_host: 10.0.0.17
+    docker_hosts:
+      hosts:
+        docker-prod:
+          ansible_host: 10.0.0.11
+        docker-dev:
+          ansible_host: 10.0.0.12
+        gitea:
+          ansible_host: 10.0.0.18
+    monitoring:
+      hosts:
+        zabbix:
+          ansible_host: 10.0.0.16
