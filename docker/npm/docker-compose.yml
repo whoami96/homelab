@@ -13,6 +13,7 @@ services:
       - '80:80'
       - '81:81'
       - '443:443'
+      - '22555:22555'
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:81"]
       interval: 30s
