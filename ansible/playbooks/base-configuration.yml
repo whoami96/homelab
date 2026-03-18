@@ -33,7 +33,38 @@
           - gnupg
           - ncurses-bin
           - fzf
+          - acl
         state: present
+
+    - name: Create accounts
+      user:
+        name: "{{ item.name }}"
+        shell: /bin/bash
+        groups: sudo
+        append: yes
+        create_home: yes
+      loop:
+        - { name: "{{ my_user }}" }
+        - { name: "ansible" }
+
+    - name: Deploy SSH public keys
+      authorized_key:
+        user: "{{ item.name }}"
+        state: present
+        key: "{{ lookup('file', item.key) }}"
+      loop:
+        - { name: "{{ my_user }}", key: "{{ user_pub_key }}" }
+        - { name: "ansible", key: "{{ ansible_pub_key }}" }
+
+    - name: Configure passwordless sudo
+      copy:
+        content: "{{ item }} ALL=(ALL) NOPASSWD:ALL"
+        dest: "/etc/sudoers.d/{{ item }}"
+        mode: '0440'
+        validate: 'visudo -cf %s'
+      loop:
+        - "{{ my_user }}"
+        - "ansible"
 
     - name: Download Fastfetch .deb package
       get_url:
@@ -65,89 +96,17 @@
         - "/home/{{ my_user }}"
         - "/root"
 
-    - name: Create accounts and deploy keys
-      user:
-        name: "{{ item.name }}"
-        shell: /bin/bash
-        groups: sudo
-        append: yes
-        create_home: yes
-      loop:
-        - { name: "{{ my_user }}", key: "{{ user_pub_key }}" }
-        - { name: "ansible", key: "{{ ansible_pub_key }}" }
-
-    - name: Deploy SSH public keys
-      authorized_key:
-        user: "{{ item.name }}"
-        state: present
-        key: "{{ lookup('file', item.key) }}"
-      loop:
-        - { name: "{{ my_user }}", key: "{{ user_pub_key }}" }
-        - { name: "ansible", key: "{{ ansible_pub_key }}" }
-
-    - name: Configure passwordless sudo
-      copy:
-        content: "{{ item }} ALL=(ALL) NOPASSWD:ALL"
-        dest: "/etc/sudoers.d/{{ item }}"
-        mode: '0440'
-        validate: 'visudo -cf %s'
-      loop:
-        - "{{ my_user }}"
-        - "ansible"
-
-    - name: SSH Hardening
-      lineinfile:
-        path: /etc/ssh/sshd_config
-        regexp: "{{ item.regexp }}"
-        line: "{{ item.line }}"
-      loop:
-        - { regexp: '^PermitRootLogin', line: 'PermitRootLogin no' }
-        - { regexp: '^PasswordAuthentication', line: 'PasswordAuthentication no' }
-        - { regexp: '^PubkeyAuthentication', line: 'PubkeyAuthentication yes' }
-        - { regexp: '^#?PrintLastLog', line: 'PrintLastLog no' }
-      notify: Restart SSH Service
-
-    - name: Setup Ghostty terminfo
-      block:
-        - name: Copy and compile Ghostty terminfo
-          copy:
-            src: "../files/ghostty.terminfo"
-            dest: "/tmp/ghostty.terminfo"
-            mode: '0644'
-        - name: Compile terminfo
-          command: tic -x -o /usr/share/terminfo /tmp/ghostty.terminfo
-      rescue:
-        - name: Log failure
-          debug:
-            msg: "Failed to compile Ghostty terminfo."
-
-    - name: Set timezone and journald limit
-      timezone:
-        name: Europe/Warsaw
-
-    - name: Limit journald log size
-      lineinfile:
-        path: /etc/systemd/journald.conf
-        regexp: '^#?SystemMaxUse='
-        line: 'SystemMaxUse=100M'
-      notify: Restart Journald
-
-    - name: Install QEMU Guest Agent (VMs only)
-      apt:
-        name: qemu-guest-agent
-        state: present
-      when: ansible_virtualization_type != 'lxc'
-
     - name: Configure Bashrc for productivity
       blockinfile:
         path: "{{ item }}"
         marker: "# {mark} ANSIBLE MANAGED BLOCK"
+        insertbefore: BOF
         create: yes
         mode: '0644'
         block: |
-          # Fastfetch autostart
+          # Fastfetch autostart (Zmieniona ścieżka na absolutną)
           if [ -f /usr/bin/fastfetch ]; then
-              fastfetch -c 8.jsonc
+              fastfetch -c ~/.config/fastfetch/8.jsonc
           fi
 
           # Navigation & Listing
@@ -197,6 +156,60 @@
       loop:
         - "/home/{{ my_user }}/.bashrc"
         - "/root/.bashrc"
+
+    - name: Ensure .bashrc is sourced from .profile
+      lineinfile:
+        path: "{{ item }}/.profile"
+        line: "[[ -f ~/.bashrc ]] && . ~/.bashrc"
+        create: yes
+        owner: "{{ 'root' if 'root' in item else my_user }}"
+        mode: '0644'
+      loop:
+        - "/home/{{ my_user }}"
+        - "/root"
+
+    - name: SSH Hardening
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+      loop:
+        - { regexp: '^PermitRootLogin', line: 'PermitRootLogin no' }
+        - { regexp: '^PasswordAuthentication', line: 'PasswordAuthentication no' }
+        - { regexp: '^PubkeyAuthentication', line: 'PubkeyAuthentication yes' }
+        - { regexp: '^#?PrintLastLog', line: 'PrintLastLog no' }
+      notify: Restart SSH Service
+
+    - name: Setup Ghostty terminfo
+      block:
+        - name: Copy and compile Ghostty terminfo
+          copy:
+            src: "../files/ghostty.terminfo"
+            dest: "/tmp/ghostty.terminfo"
+            mode: '0644'
+        - name: Compile terminfo
+          command: tic -x -o /usr/share/terminfo /tmp/ghostty.terminfo
+      rescue:
+        - name: Log failure
+          debug:
+            msg: "Failed to compile Ghostty terminfo."
+
+    - name: Set timezone and journald limit
+      timezone:
+        name: Europe/Warsaw
+
+    - name: Limit journald log size
+      lineinfile:
+        path: /etc/systemd/journald.conf
+        regexp: '^#?SystemMaxUse='
+        line: 'SystemMaxUse=100M'
+      notify: Restart Journald
+
+    - name: Install QEMU Guest Agent (VMs only)
+      apt:
+        name: qemu-guest-agent
+        state: present
+      when: ansible_virtualization_type != 'lxc'
 
     - name: Cleanup
       file:

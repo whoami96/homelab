@@ -2,16 +2,8 @@
 - name: MariaDB Server Setup with Service Databases (Vault & AppRole)
   hosts: mariadb
   become: yes
-  vars_files:
-    - ../vars/vault_creds.yml
 
   vars:
-    mariadb_root_password: "{{ lookup('community.hashi_vault.hashi_vault', 
-                               'auth_method=approle 
-                                role_id=' + vault_role_id + 
-                               ' secret_id=' + vault_secret_id + 
-                               ' url=http://10.0.0.20:8200 
-                                secret=secrets/data/mariadb:root_password') }}"
     mariadb_bind_address: "0.0.0.0"
     services_to_setup:
       - { name: 'zabbix', secret_key: 'zabbix_password' }
@@ -20,12 +12,32 @@
       - { name: 'gitea', secret_key: 'gitea_password' }
 
   tasks:
+    - name: Get all MariaDB secrets from Vault
+      community.hashi_vault.vault_kv2_get:
+        url: "{{ ansible_hashi_vault_url }}"
+        auth_method: approle
+        role_id: "{{ vault_role_id }}"
+        secret_id: "{{ vault_secret_id }}"
+        engine_mount_point: "secrets"
+        path: "mariadb/services"
+        validate_certs: false
+      register: mariadb_vault
+      delegate_to: localhost
+      vars:
+        ansible_become: false
+      become: no
+
+    - name: Set root password fact
+      set_fact:
+        mariadb_root_password: "{{ mariadb_vault.secret.root_password }}"
+
     - name: Install MariaDB server and Python dependencies
       apt:
         name:
           - mariadb-server
           - python3-pymysql
         state: present
+        update_cache: yes
 
     - name: Ensure MariaDB is started and enabled
       service:
@@ -34,44 +46,15 @@
         enabled: yes
 
     - name: Check if root password is already set
-      command: mysqladmin -u root -p'{{ mariadb_root_password }}' ping
+      command: "mysqladmin -u root -p'{{ mariadb_root_password }}' ping"
       register: root_password_check
       ignore_errors: yes
       changed_when: false
 
-    - name: Set MariaDB root password (manual command)
+    - name: Set MariaDB root password if not set
       command: >
         mariadb -u root -e "SET PASSWORD FOR 'root'@'localhost' = PASSWORD('{{ mariadb_root_password }}'); FLUSH PRIVILEGES;"
-      when: root_password_check.rc != 0
-
-    - name: Remove anonymous MariaDB users
-      mysql_user:
-        name: ""
-        host_all: yes
-        state: absent
-        login_user: root
-        login_password: "{{ mariadb_root_password }}"
-
-    - name: Remove MariaDB test database
-      mysql_db:
-        name: test
-        state: absent
-        login_user: root
-        login_password: "{{ mariadb_root_password }}"
-
-    - name: Allow MariaDB to listen on all interfaces
-      lineinfile:
-        path: /etc/mysql/mariadb.conf.d/50-server.cnf
-        regexp: '^bind-address'
-        line: "bind-address = {{ mariadb_bind_address }}"
-      notify: Restart MariaDB
-
-    - name: Configure UFW to allow MySQL traffic
-      ufw:
-        rule: allow
-        proto: tcp
-        port: '3306'
-        src: '10.0.0.0/24'
+      when: root_password_check is failed or root_password_check.rc != 0
 
     - name: Create service databases
       mysql_db:
@@ -84,10 +67,7 @@
     - name: Create database users for services
       mysql_user:
         name: "{{ item.name }}"
-        password: "{{ lookup('community.hashi_vault.hashi_vault', 
-                      'auth_method=approle role_id=' + vault_role_id + ' secret_id=' + vault_secret_id + 
-                      ' url=http://10.0.0.20:8200 
-                       secret=secrets/data/mariadb/services:' + item.secret_key) }}"
+        password: "{{ mariadb_vault.secret[item.secret_key] }}"
         host: "%"
         priv: "{{ item.name }}.*:ALL"
         state: present

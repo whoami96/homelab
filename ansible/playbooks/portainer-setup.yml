@@ -40,7 +40,7 @@
             state: present
 
     - name: Setup Portainer Agent
-      when: inventory_hostname in ['docker-dev', 'gitea']
+      when: inventory_hostname in ['docker-dev', 'gitea', 'vpn']
       block:
         - name: Create Portainer Agent directory
           file:

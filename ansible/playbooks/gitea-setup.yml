@@ -9,9 +9,24 @@
     gitea_home: "/home/git"
 
   tasks:
-    - name: Get Gitea secrets from dedicated Vault path
+    - name: Get Gitea secrets from Vault (Delegated to Localhost)
+      community.hashi_vault.vault_kv2_get:
+        url: "{{ ansible_hashi_vault_url }}"
+        auth_method: approle
+        role_id: "{{ vault_role_id }}"
+        secret_id: "{{ vault_secret_id }}"
+        engine_mount_point: "secrets"
+        path: "gitea/config"
+        validate_certs: false
+      register: vault_result
+      delegate_to: localhost
+      vars:
+        ansible_become: false
+      become: no
+
+    - name: Set gitea_secrets fact
       set_fact:
-        gitea_secrets: "{{ lookup('community.hashi_vault.hashi_vault', 'secrets/data/gitea/config') }}"
+        gitea_secrets: "{{ vault_result.secret }}"
 
     - name: Create git system user
       user:
@@ -58,7 +73,7 @@
           [Unit]
           Description=Gitea (Git with a cup of tea)
           After=network.target
-          After=mysql.service
+          After=mariadb.service
 
           [Service]
           RestartSec=2s
