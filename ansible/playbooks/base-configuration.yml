@@ -1,5 +1,5 @@
 ---
-- name: Homelab Nodes Base Configuration (Full Productivity Edition)
+- name: Homelab Nodes Bash & Terminal Configuration
   hosts: all
   become: yes
 
@@ -8,86 +8,22 @@
     fastfetch_config_url: "https://raw.githubusercontent.com/fastfetch-cli/fastfetch/dev/presets/examples/8.jsonc"
 
   tasks:
-    - name: Update apt cache and perform dist-upgrade
+    - name: Ensure Fastfetch is installed
       apt:
-        update_cache: yes
-        upgrade: dist
-        autoremove: yes
-      register: apt_result
-      until: apt_result is success
-      retries: 5
-      delay: 10
-
-    - name: Install essential system tools
-      apt:
-        name:
-          - sudo
-          - curl
-          - git
-          - vim
-          - neovim
-          - tmux
-          - htop
-          - rsync
-          - ufw
-          - gnupg
-          - ncurses-bin
-          - fzf
-          - acl
-        state: present
-
-    - name: Create accounts
-      user:
-        name: "{{ item.name }}"
-        shell: /bin/bash
-        groups: sudo
-        append: yes
-        create_home: yes
-      loop:
-        - { name: "{{ my_user }}" }
-        - { name: "ansible" }
-
-    - name: Deploy SSH public keys
-      authorized_key:
-        user: "{{ item.name }}"
-        state: present
-        key: "{{ lookup('file', item.key) }}"
-      loop:
-        - { name: "{{ my_user }}", key: "{{ user_pub_key }}" }
-        - { name: "ansible", key: "{{ ansible_pub_key }}" }
-
-    - name: Configure passwordless sudo
-      copy:
-        content: "{{ item }} ALL=(ALL) NOPASSWD:ALL"
-        dest: "/etc/sudoers.d/{{ item }}"
-        mode: '0440'
-        validate: 'visudo -cf %s'
-      loop:
-        - "{{ my_user }}"
-        - "ansible"
-
-    - name: Download Fastfetch .deb package
-      get_url:
-        url: "{{ fastfetch_deb_url }}"
-        dest: "/tmp/fastfetch.deb"
-        mode: '0644'
-
-    - name: Install Fastfetch package
-      apt:
-        deb: "/tmp/fastfetch.deb"
+        deb: "{{ fastfetch_deb_url }}"
         state: present
 
     - name: Create Fastfetch config directories
       file:
         path: "{{ item }}/.config/fastfetch"
         state: directory
-        owner: "{{ 'root' if 'root' in item else my_user }}"
+        owner: "{{ item.split('/')[2] if 'home' in item else 'root' }}"
         mode: '0755'
       loop:
         - "/home/{{ my_user }}"
         - "/root"
 
-    - name: Download Fastfetch preset 8.jsonc
+    - name: Download Fastfetch preset
       get_url:
         url: "{{ fastfetch_config_url }}"
         dest: "{{ item }}/.config/fastfetch/8.jsonc"
@@ -96,62 +32,66 @@
         - "/home/{{ my_user }}"
         - "/root"
 
+    - name: Setup Ghostty terminfo for proper terminal support
+      block:
+        - name: Copy Ghostty terminfo source
+          copy:
+            src: "../files/ghostty.terminfo"
+            dest: "/tmp/ghostty.terminfo"
+            mode: '0644'
+        - name: Compile terminfo system-wide
+          command: tic -x -o /usr/share/terminfo /tmp/ghostty.terminfo
+      rescue:
+        - name: Log Ghostty failure
+          debug:
+            msg: "Pominęto kompilację Ghostty terminfo (brak pliku źródłowego)."
+
     - name: Configure Bashrc for productivity
       blockinfile:
         path: "{{ item }}"
-        marker: "# {mark} ANSIBLE MANAGED BLOCK"
-        insertbefore: BOF
+        marker: "# {mark} ANSIBLE MANAGED BLOCK V2"
+        insertafter: EOF
         create: yes
         mode: '0644'
         block: |
-          # Fastfetch autostart (Zmieniona ścieżka na absolutną)
-          if [ -f /usr/bin/fastfetch ]; then
+          # Fastfetch - uruchamiaj tylko raz na sesję interaktywną
+          if [ -f /usr/bin/fastfetch ] && [[ $- == *i* ]] && [ -z "$FASTFETCH_RUN" ]; then
               fastfetch -c ~/.config/fastfetch/8.jsonc
+              export FASTFETCH_RUN=1
           fi
 
           # Navigation & Listing
-          alias ..='cd ..'
-          alias ...='cd ../..'
-          alias -- -='cd -'
           alias ll='ls -lah --group-directories-first'
           alias lt='ls -ltrh'
-          shopt -s autocd
-          shopt -s cdspell
+          alias ..='cd ..'
+          alias ...='cd ../..'
+          shopt -s autocd 2>/dev/null
+          shopt -s cdspell 2>/dev/null
 
           # Productivity Tools
           alias v='nvim'
           alias vi='nvim'
           alias vim='nvim'
-          alias a='ansible'
-          alias ap='ansible-playbook'
-          alias tf='terraform'
-          alias d='docker'
           alias dc='docker compose'
+          alias ap='ansible-playbook'
           mkcd() { mkdir -p "$1" && cd "$1"; }
-
-          # Git Aliases & Functions
-          alias gs='git status'
-          alias ga='git add'
-          alias gc='git commit -m'
-          alias gp='git push'
-          alias gl='git pull'
-          alias glog="git log --graph --oneline --decorate"
-          gcp() { git add .; git commit -m "$1"; git push; }
-
-          # Git Prompt & Colors
+          
+          # Git Prompt Integration
           GIT_PROMPT_SCRIPT=""
-          [ -f /usr/lib/git-core/git-sh-prompt ] && GIT_PROMPT_SCRIPT="/usr/lib/git-core/git-sh-prompt"
-          [ -f /usr/share/git-core/git-sh-prompt ] && GIT_PROMPT_SCRIPT="/usr/share/git-core/git-sh-prompt"
-
+          for f in "/usr/lib/git-core/git-sh-prompt" "/usr/share/git-core/git-sh-prompt"; do
+              [ -f "$f" ] && GIT_PROMPT_SCRIPT="$f" && break
+          done
           if [ -n "$GIT_PROMPT_SCRIPT" ]; then
               source "$GIT_PROMPT_SCRIPT"
               export GIT_PS1_SHOWDIRTYSTATE=1
               export GIT_PS1_SHOWUNTRACKEDFILES=1
-              if [ "$USER" = "root" ]; then
-                  export PS1='\[\e[1;31m\][\u@\h \[\e[1;34m\]\w\[\e[1;31m\]]\[\e[1;33m\]$(__git_ps1 " (%s)")\[\e[0m\] \# '
-              else
-                  export PS1='\[\e[1;32m\][\u@\h \[\e[1;34m\]\w\[\e[1;32m\]]\[\e[1;33m\]$(__git_ps1 " (%s)")\[\e[0m\] \$ '
-              fi
+          fi
+
+          # PROMPT - czysty, bez numeracji linii, z obsługą GIT
+          if [ "$USER" = "root" ]; then
+              export PS1='\[\e[1;31m\][\u@\h \[\e[1;34m\]\w\[\e[1;31m\]]\[\e[1;33m\]$(__git_ps1 " (%s)")\[\e[0m\] # '
+          else
+              export PS1='\[\e[1;32m\][\u@\h \[\e[1;34m\]\w\[\e[1;32m\]]\[\e[1;33m\]$(__git_ps1 " (%s)")\[\e[0m\] $ '
           fi
       loop:
         - "/home/{{ my_user }}/.bashrc"
@@ -162,67 +102,19 @@
         path: "{{ item }}/.profile"
         line: "[[ -f ~/.bashrc ]] && . ~/.bashrc"
         create: yes
-        owner: "{{ 'root' if 'root' in item else my_user }}"
-        mode: '0644'
       loop:
         - "/home/{{ my_user }}"
         - "/root"
 
-    - name: SSH Hardening
+    - name: SSH Hardening - Disable LastLog print (cleaner login)
       lineinfile:
         path: /etc/ssh/sshd_config
-        regexp: "{{ item.regexp }}"
-        line: "{{ item.line }}"
-      loop:
-        - { regexp: '^PermitRootLogin', line: 'PermitRootLogin no' }
-        - { regexp: '^PasswordAuthentication', line: 'PasswordAuthentication no' }
-        - { regexp: '^PubkeyAuthentication', line: 'PubkeyAuthentication yes' }
-        - { regexp: '^#?PrintLastLog', line: 'PrintLastLog no' }
+        regexp: '^#?PrintLastLog'
+        line: 'PrintLastLog no'
       notify: Restart SSH Service
-
-    - name: Setup Ghostty terminfo
-      block:
-        - name: Copy and compile Ghostty terminfo
-          copy:
-            src: "../files/ghostty.terminfo"
-            dest: "/tmp/ghostty.terminfo"
-            mode: '0644'
-        - name: Compile terminfo
-          command: tic -x -o /usr/share/terminfo /tmp/ghostty.terminfo
-      rescue:
-        - name: Log failure
-          debug:
-            msg: "Failed to compile Ghostty terminfo."
-
-    - name: Set timezone and journald limit
-      timezone:
-        name: Europe/Warsaw
-
-    - name: Limit journald log size
-      lineinfile:
-        path: /etc/systemd/journald.conf
-        regexp: '^#?SystemMaxUse='
-        line: 'SystemMaxUse=100M'
-      notify: Restart Journald
-
-    - name: Install QEMU Guest Agent (VMs only)
-      apt:
-        name: qemu-guest-agent
-        state: present
-      when: ansible_virtualization_type != 'lxc'
-
-    - name: Cleanup
-      file:
-        path: "/tmp/fastfetch.deb"
-        state: absent
 
   handlers:
     - name: Restart SSH Service
       service:
         name: ssh
-        state: restarted
-
-    - name: Restart Journald
-      service:
-        name: systemd-journald
         state: restarted

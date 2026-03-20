@@ -1,0 +1,129 @@
+---
+- name: Install and Configure Ansible Semaphore
+  hosts: semaphore
+  become: yes
+
+  tasks:
+    - name: Get MariaDB services passwords from Vault
+      community.hashi_vault.vault_kv2_get:
+        url: "{{ ansible_hashi_vault_url }}"
+        auth_method: approle
+        role_id: "{{ vault_role_id }}"
+        secret_id: "{{ vault_secret_id }}"
+        engine_mount_point: "secrets"
+        path: "mariadb/services"
+      register: vault_mariadb
+      delegate_to: localhost
+      become: no
+      vars:
+        ansible_become: false
+
+    - name: Get Semaphore Admin secrets from Vault
+      community.hashi_vault.vault_kv2_get:
+        url: "{{ ansible_hashi_vault_url }}"
+        auth_method: approle
+        role_id: "{{ vault_role_id }}"
+        secret_id: "{{ vault_secret_id }}"
+        engine_mount_point: "secrets"
+        path: "semaphore"
+      register: vault_semaphore
+      delegate_to: localhost
+      become: no
+      vars:
+        ansible_become: false
+
+    - name: Set facts from Vault
+      set_fact:
+        db_pass: "{{ vault_mariadb.secret.semaphore_password }}"
+        sem_admin_user: "{{ vault_semaphore.secret.admin_user }}"
+        sem_admin_pass: "{{ vault_semaphore.secret.admin_password }}"
+
+    - name: Install system dependencies
+      apt:
+        name: [curl, git, ansible, unzip, python3-pymysql]
+        state: present
+        update_cache: yes
+
+    - name: Download Semaphore package
+      get_url:
+        url: "https://github.com/semaphoreui/semaphore/releases/download/v2.10.35/semaphore_2.10.35_linux_amd64.deb"
+        dest: "/tmp/semaphore.deb"
+        mode: '0644'
+
+    - name: Install Semaphore
+      apt:
+        deb: "/tmp/semaphore.deb"
+
+    - name: Create configuration directory
+      file:
+        path: /etc/semaphore
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Generate Semaphore config.json
+      copy:
+        dest: /etc/semaphore/config.json
+        content: |
+          {
+            "mysql": {
+              "host": "10.0.0.15:3306",
+              "user": "semaphore",
+              "pass": "{{ db_pass }}",
+              "name": "semaphore"
+            },
+            "dialect": "mysql",
+            "port": ":3000",
+            "cookie_hash": "{{ lookup('password', '/dev/null length=32 chars=ascii_letters') | b64encode }}",
+            "cookie_encryption": "{{ lookup('password', '/dev/null length=32 chars=ascii_letters') | b64encode }}",
+            "access_key_encryption": "{{ lookup('password', '/dev/null length=32 chars=ascii_letters') | b64encode }}"
+          }
+        owner: root
+        group: root
+        mode: '0600'
+
+    - name: Setup Systemd Service
+      copy:
+        dest: /etc/systemd/system/semaphore.service
+        content: |
+          [Unit]
+          Description=Ansible Semaphore UI
+          After=network.target
+
+          [Service]
+          Type=simple
+          ExecStart=/usr/bin/semaphore server --config /etc/semaphore/config.json
+          Restart=always
+          WorkingDirectory=/tmp
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Enable and Start Semaphore
+      systemd:
+        name: semaphore
+        state: started
+        enabled: yes
+        daemon_reload: yes
+
+    - name: Wait for Semaphore to be ready
+      wait_for:
+        port: 3000
+        timeout: 10
+
+    - name: Check if admin user exists
+      shell: "semaphore users list --config /etc/semaphore/config.json | grep -w {{ sem_admin_user }}"
+      register: user_check
+      failed_when: false
+      changed_when: false
+
+    - name: Create Admin User if not exists
+      shell: >
+        semaphore users add --admin 
+        --name 'Paweł Owczarczyk' 
+        --email 'pawel.owczarczyk@asseco.cloud' 
+        --login '{{ sem_admin_user }}' 
+        --password '{{ sem_admin_pass }}' 
+        --config /etc/semaphore/config.json
+      when: user_check.rc != 0

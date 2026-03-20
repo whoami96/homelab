@@ -10,6 +10,8 @@ all:
           ansible_host: 10.0.0.14
         vault:
           ansible_host: 10.0.0.20
+        pve:
+          ansible_host: 10.0.0.10
     databases:
       hosts:
         mariadb:
