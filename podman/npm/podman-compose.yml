@@ -1,0 +1,29 @@
+services:
+  npm:
+    image: docker.io/jc21/nginx-proxy-manager:latest
+    container_name: nginx-proxy-manager
+    restart: always
+    dns:
+      - 1.1.1.1
+      - 1.0.0.1
+      - 8.8.8.8
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+      - '22555:22555'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:81"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    volumes:
+      - /opt/npm/data:/data
+      - /opt/npm/letsencrypt:/etc/letsencrypt
+    environment:
+      - TZ=Europe/Warsaw
+    security_opt:
+      - apparmor:unconfined
+    logging:
+      driver: journald

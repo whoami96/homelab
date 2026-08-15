@@ -1,0 +1,88 @@
+services:
+  wallabag:
+    image: docker.io/wallabag/wallabag:latest
+    container_name: wallabag
+    ports:
+      - '${WALLABAG_PORT:-8088}:80'
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/api/version || curl -f http://localhost/login || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - SYMFONY__ENV__DATABASE_DRIVER=pdo_mysql
+      - SYMFONY__ENV__DATABASE_HOST=wallabag-mariadb
+      - SYMFONY__ENV__DATABASE_PORT=3306
+      - SYMFONY__ENV__DATABASE_NAME=${MYSQL_DATABASE:-wallabag}
+      - SYMFONY__ENV__DATABASE_USER=${MYSQL_USER:-wallabag}
+      - SYMFONY__ENV__DATABASE_PASSWORD=${MYSQL_PASSWORD}
+      - SYMFONY__ENV__DATABASE_CHARSET=utf8mb4
+      - SYMFONY__ENV__DATABASE_TABLE_PREFIX=wallabag_
+      - SYMFONY__ENV__DOMAIN_NAME=${WALLABAG_DOMAIN_NAME:-http://localhost:8088}
+      - SYMFONY__ENV__SERVER_NAME=${WALLABAG_SERVER_NAME:-Wallabag}
+      - SYMFONY__ENV__SECRET=${WALLABAG_SECRET}
+      - SYMFONY__ENV__FOSUSER_REGISTRATION=${WALLABAG_REGISTRATION:-false}
+      - SYMFONY__ENV__FOSUSER_CONFIRMATION=false
+      - SYMFONY__ENV__REDIS_HOST=wallabag-redis
+      - SYMFONY__ENV__REDIS_PORT=6379
+      - SYMFONY__ENV__MAILER_DSN=null://localhost
+      - TZ=Europe/Warsaw
+    volumes:
+      - wallabag_images:/var/www/wallabag/web/assets/images
+    networks:
+      - wallabag_net
+    depends_on:
+      - wallabag-mariadb
+      - wallabag-redis
+    logging:
+      driver: journald
+
+  wallabag-redis:
+    image: docker.io/library/redis:8.2.2-bookworm
+    container_name: wallabag-redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    volumes:
+      - wallabag-redis_data:/data
+    networks:
+      - wallabag_net
+    logging:
+      driver: journald
+
+  wallabag-mariadb:
+    image: docker.io/library/mariadb:11.8-ubi
+    container_name: wallabag-mariadb
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h localhost --password='${MYSQL_ROOT_PASSWORD}' || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    volumes:
+      - wallabag-mariadb_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    networks:
+      - wallabag_net
+    command:
+      - mysqld
+      - --transaction-isolation=READ-COMMITTED
+      - --binlog-format=ROW
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    logging:
+      driver: journald
+
+volumes:
+  wallabag_images:
+  wallabag-mariadb_data:
+  wallabag-redis_data:
+
+networks:
+  wallabag_net:
+    driver: bridge
